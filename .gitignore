@@ -1,0 +1,56 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+.python-version
+
+# C extensions
+*.so
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# macOS / Windows system files
+.DS_Store
+Thumbs.db
+
+# Environment variables 
+.env
+
+# Local vector index
+vectordb/
+vectordb/*
+
+# Crawled auto-generated page files
+data/page_*.json
+
+# IDE/settings
+.vscode/
+.idea/

@@ -1,0 +1,46 @@
+{
+  "name": "Sponsor",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string",
+      "description": "Name of sponsoring company/organization"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL to sponsor logo"
+    },
+    "website_url": {
+      "type": "string",
+      "description": "Sponsor's website"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "platinum",
+        "gold",
+        "silver",
+        "bronze",
+        "community"
+      ],
+      "default": "community",
+      "description": "Sponsorship level"
+    },
+    "contribution_amount": {
+      "type": "number",
+      "description": "Total contribution amount"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of partnership"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "company_name",
+    "tier"
+  ]
+}

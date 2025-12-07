@@ -1,0 +1,49 @@
+{
+  "name": "Delivery",
+  "type": "object",
+  "properties": {
+    "volunteer_name": {
+      "type": "string",
+      "description": "Name of volunteer who made delivery"
+    },
+    "meals_delivered": {
+      "type": "number",
+      "description": "Number of meals delivered"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Delivery location latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Delivery location longitude"
+    },
+    "address": {
+      "type": "string",
+      "description": "Street address or landmark"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the delivery"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Optional photo of delivery"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "verified",
+        "pending"
+      ],
+      "default": "completed"
+    }
+  },
+  "required": [
+    "volunteer_name",
+    "meals_delivered",
+    "latitude",
+    "longitude"
+  ]
+}

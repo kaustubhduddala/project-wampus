@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Neo-brutal utility classes */
+.neo-brutal-shadow {
+  box-shadow: 6px 6px 0px #000;
+}
+
+.neo-brutal-shadow-sm {
+  box-shadow: 3px 3px 0px #000;
+}
+
+.neo-brutal-border {
+  border: 3px solid #000;
+}
+
+.neo-brutal-border-thin {
+  border: 2px solid #000;
+}
+
+.neo-button {
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0px #000;
+  transition: all 0.1s;
+  cursor: pointer;
+  background-color: white;
+  font-weight: 700;
+}
+
+.neo-button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000;
+}
+
+.neo-button:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px #000;
+}
+
+.neo-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.neo-button:disabled:hover {
+  transform: none;
+  box-shadow: 4px 4px 0px #000;
+}

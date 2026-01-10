@@ -1,34 +1,43 @@
-import React from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+// import React from "react";
+// import { base44 } from "@/api/base44Client";
+// import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Users, Package, DollarSign, Target, Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "../components/ui/button";
+// import { Progress } from "@/components/ui/progress";
 import HeatmapSection from "../components/HeatmapSection";
 
 export default function Home() {
-  const { data: donations = [] } = useQuery({
-    queryKey: ["donations"],
-    queryFn: () => base44.entities.Donation.list(),
-    initialData: [],
-  });
+  // const { data: donations = [] } = useQuery({
+  //   queryKey: ["donations"],
+  //   queryFn: () => base44.entities.Donation.list(),
+  //   initialData: [],
+  // });
 
-  const { data: volunteers = [] } = useQuery({
-    queryKey: ["volunteers"],
-    queryFn: () => base44.entities.Volunteer.list(),
-    initialData: [],
-  });
+  // const { data: volunteers = [] } = useQuery({
+  //   queryKey: ["volunteers"],
+  //   queryFn: () => base44.entities.Volunteer.list(),
+  //   initialData: [],
+  // });
 
-  const { data: deliveries = [] } = useQuery({
-    queryKey: ["deliveries"],
-    queryFn: () => base44.entities.Delivery.list(),
-    initialData: [],
-  });
+  // const { data: deliveries = [] } = useQuery({
+  //   queryKey: ["deliveries"],
+  //   queryFn: () => base44.entities.Delivery.list(),
+  //   initialData: [],
+  // });
 
-  const totalRaised = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
-  const totalMeals = deliveries.reduce((sum, d) => sum + (d.meals_delivered || 0), 0);
+  // const totalRaised = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
+  // const totalMeals = deliveries.reduce((sum, d) => sum + (d.meals_delivered || 0), 0);
+  const totalRaised = 10000
+  const totalMeals = 40
   const goalAmount = 50000;
   const progressPercent = (totalRaised / goalAmount) * 100;
+
+  const volunteers = [
+    {"name": "Joe"}
+  ]
+  const donations = [
+    {"donation": 10000}
+  ]
 
   return (
     <div>
@@ -49,10 +58,10 @@ export default function Home() {
                 Project Wampus delivers hope and hot meals to people experiencing homelessness across Austin, TX.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button className="neo-button bg-black text-white text-lg px-8 py-6 font-black">
+                <Button className="neo-button text-lg px-8 py-6 font-black">
                   DONATE NOW
                 </Button>
-                <Button className="neo-button bg-white text-black text-lg px-8 py-6 font-black">
+                <Button className="neo-button text-lg px-8 py-6 font-black">
                   VOLUNTEER
                 </Button>
               </div>
@@ -169,7 +178,7 @@ export default function Home() {
             Every dollar, every volunteer hour, every meal makes a difference.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button className="neo-button bg-black text-white text-lg px-8 py-6 font-black">
+            <Button className="neo-button bg-black! text-white text-lg px-8 py-6 font-black">
               <Users className="w-5 h-5 mr-2" />
               BECOME A VOLUNTEER
             </Button>

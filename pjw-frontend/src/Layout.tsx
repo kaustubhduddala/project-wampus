@@ -1,17 +1,17 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+// import { createPageUrl } from "@/utils";
+// import { base44 } from "@/api/base44Client";
 import { Home, Info, ShoppingBag, MapPin, Award, Menu, X, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Chatbot from "./components/Chatbot";
+import Chatbot from "@/components/Chatbot";
 
 const navigationItems = [
-  { title: "Home", url: createPageUrl("Home"), icon: Home },
-  { title: "About", url: createPageUrl("About"), icon: Info },
-  { title: "Shop", url: createPageUrl("Shop"), icon: ShoppingBag },
-  { title: "Deliveries", url: createPageUrl("Deliveries"), icon: MapPin },
-  { title: "Sponsors", url: createPageUrl("Sponsors"), icon: Award },
+  { title: "Home", url: "/home", icon: Home },
+  { title: "About", url: "/about", icon: Info },
+  { title: "Shop", url: "/shop", icon: ShoppingBag },
+  { title: "Deliveries", url: "/deliveries", icon: MapPin },
+  { title: "Sponsors", url: "/sponsors", icon: Award }
 ];
 
 export default function Layout({ children }) {
@@ -19,54 +19,17 @@ export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const handleLogin = () => {
-    base44.auth.redirectToLogin();
+    // base44.auth.redirectToLogin();
   };
 
   return (
     <div className="min-h-screen bg-white">
-      <style>{`
-        * {
-          font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        
-        .neo-brutal-shadow {
-          box-shadow: 6px 6px 0px #000;
-        }
-        
-        .neo-brutal-shadow-sm {
-          box-shadow: 3px 3px 0px #000;
-        }
-        
-        .neo-brutal-border {
-          border: 3px solid #000;
-        }
-        
-        .neo-brutal-border-thin {
-          border: 2px solid #000;
-        }
-        
-        .neo-button {
-          border: 3px solid #000;
-          box-shadow: 4px 4px 0px #000;
-          transition: all 0.1s;
-        }
-        
-        .neo-button:hover {
-          transform: translate(2px, 2px);
-          box-shadow: 2px 2px 0px #000;
-        }
-        
-        .neo-button:active {
-          transform: translate(4px, 4px);
-          box-shadow: 0px 0px 0px #000;
-        }
-      `}</style>
 
       {/* Header */}
       <header className="bg-[#22C55E] neo-brutal-border border-b-4 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <Link to={createPageUrl("Home")} className="flex items-center gap-3">
+            <Link to={"./home"} className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white neo-brutal-border flex items-center justify-center neo-brutal-shadow-sm">
                 <span className="text-2xl font-black">PJW</span>
               </div>
@@ -100,14 +63,14 @@ export default function Layout({ children }) {
               <Button 
                 onClick={handleLogin}
                 size="sm"
-                className="neo-button bg-transparent text-white hover:bg-white hover:text-black font-bold ml-1"
+                className="neo-button bg-transparent! text-white hover:bg-white hover:text-black font-bold ml-1"
               >
                 <LogIn className="w-4 h-4 mr-1" />
                 Login
               </Button>
               <Button 
                 size="sm"
-                className="neo-button bg-black text-white hover:bg-gray-900 font-bold ml-1"
+                className="neo-button bg-black! text-white hover:bg-gray-900 font-bold ml-1"
               >
                 DONATE
               </Button>
@@ -138,7 +101,7 @@ export default function Layout({ children }) {
                       className={`w-full neo-button font-bold ${
                         isActive
                           ? "bg-white text-black"
-                          : "bg-transparent text-white border-0 shadow-none"
+                          : "bg-transparent text-white border-0 shadow-none hover:bg-white hover:text-black"
                       }`}
                     >
                       <item.icon className="w-4 h-4 mr-2" />
@@ -149,12 +112,12 @@ export default function Layout({ children }) {
               })}
               <Button 
                 onClick={handleLogin}
-                className="neo-button bg-transparent text-white border-white font-bold w-full"
+                className="neo-button bg-transparent! text-white border-white font-bold w-full hover:bg-black!"
               >
                 <LogIn className="w-4 h-4 mr-2" />
                 Login
               </Button>
-              <Button className="neo-button bg-black text-white font-bold w-full">
+              <Button className="neo-button bg-black! text-white font-bold w-full">
                 DONATE NOW
               </Button>
             </nav>
@@ -176,9 +139,9 @@ export default function Layout({ children }) {
             <div>
               <h4 className="font-black mb-4">QUICK LINKS</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to={createPageUrl("About")} className="hover:text-[#22C55E]">About Us</Link></li>
-                <li><Link to={createPageUrl("Shop")} className="hover:text-[#22C55E]">Shop</Link></li>
-                <li><Link to={createPageUrl("Sponsors")} className="hover:text-[#22C55E]">Sponsors</Link></li>
+                <li><Link to={"/about"} className="hover:text-[#22C55E]">About Us</Link></li>
+                <li><Link to={"/shop"} className="hover:text-[#22C55E]">Shop</Link></li>
+                <li><Link to={"/sponsors"} className="hover:text-[#22C55E]">Sponsors</Link></li>
               </ul>
             </div>
             <div>

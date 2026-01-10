@@ -1,5 +1,5 @@
 
-import React from "react";
+// import React from "react";
 import { MapPin, Target } from "lucide-react";
 
 export default function HeatmapSection() {
@@ -25,7 +25,7 @@ export default function HeatmapSection() {
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Placeholder Map */}
-        <div className="bg-white neo-brutal-border neo-brutal-shadow-sm p-8 flex items-center justify-center min-h-[400px]">
+        <div className="bg-white neo-brutal-border neo-brutal-shadow-sm p-8 flex items-center justify-center min-h-100">
           <div className="text-center">
             <Target className="w-16 h-16 mx-auto mb-4 text-[#22C55E]" />
             <p className="font-black text-xl mb-2">INTERACTIVE MAP</p>

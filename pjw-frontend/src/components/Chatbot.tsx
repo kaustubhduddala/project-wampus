@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,7 +42,6 @@ export default function Chatbot() {
           <MessageCircle className="w-8 h-8 text-white mx-auto" />
         </button>
       )}
-
       {/* Chat Window */}
       {isOpen && (
         <div className="fixed bottom-6 right-6 w-96 h-[500px] bg-white neo-brutal-border neo-brutal-shadow z-50 flex flex-col">

@@ -4,7 +4,8 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Shop from './pages/Shop';
 import Deliveries from './pages/Deliveries';
-import Sponsers from './pages/Sponsers';
+import Sponsors from './pages/Sponsors';
+// import './index.css'
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/deliveries" element={<Deliveries />} />
-          <Route path="/sponsors" element={<Sponsers />} />
+          <Route path="/sponsors" element={<Sponsors />} />
         </Routes>
       </Layout>
     </Router>

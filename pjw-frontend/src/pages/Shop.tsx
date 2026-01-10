@@ -1,17 +1,31 @@
-import React from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+// import React from "react";
+// import { base44 } from "@/api/base44Client";
+// import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag, Package, Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
 
 export default function Shop() {
-  const { data: items = [] } = useQuery({
-    queryKey: ["merchandise"],
-    queryFn: () => base44.entities.MerchandiseItem.list(),
-    initialData: [],
-  });
+  // const { data: items = [] } = useQuery({
+  //   queryKey: ["merchandise"],
+  //   queryFn: () => base44.entities.MerchandiseItem.list(),
+  //   initialData: [],
+  // });
 
+  // const items = [
+  //   {
+  //     "id": "itemId",
+  //     "name": "PJ Wampus Shirt",
+  //   "description": "medium sized shirt",
+  //   "price": 12,
+  //   "image_url": "",
+  //   "category": "apparel",
+  //   "sizes_available": ["M"],
+  //   "in_stock": true,
+  //   "stock_quantity": 0
+  //   }
+  // ]
+  const items = [];
   return (
     <div>
       {/* Hero Section */}
@@ -118,7 +132,7 @@ export default function Shop() {
                 <p className="text-xs font-bold">20 Meals</p>
               </button>
             </div>
-            <Button className="neo-button bg-black text-white px-8 py-6 text-lg font-black">
+            <Button className="neo-button bg-black! text-white px-8 py-6 text-lg font-black">
               CUSTOM AMOUNT
             </Button>
           </div>

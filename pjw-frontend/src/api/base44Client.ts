@@ -61,7 +61,7 @@ export const base44 = {
     Delivery: new EntityClient("Delivery"),
     Donation: new EntityClient("Donation"),
     MerchandiseItem: new EntityClient("MerchandiseItem"),
-    Sponsers: new EntityClient("Sponsers"),
+    Sponsors: new EntityClient("Sponsors"),
     Sponsor: new EntityClient("Sponsor"),
     Volunteer: new EntityClient("Volunteer"),
   },

@@ -1,15 +1,15 @@
-import React from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+// import React from "react";
+// import { base44 } from "@/api/base44Client";
+// import { useQuery } from "@tanstack/react-query";
 import { Heart, Users, Target, Award, Calendar, TrendingUp, Megaphone, AlertCircle, CheckCircle, Clock, FileText, ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "../components/ui/badge";
 
 export default function About() {
-  const { data: updates = [] } = useQuery({
-    queryKey: ["advocacy"],
-    queryFn: () => base44.entities.AdvocacyUpdate.list("-created_date"),
-    initialData: [],
-  });
+  // const { data: updates = [] } = useQuery({
+  //   queryKey: ["advocacy"],
+  //   queryFn: () => base44.entities.AdvocacyUpdate.list("-created_date"),
+  //   initialData: [],
+  // });
 
   const milestones = [
     { year: "2021", event: "Project Wampus Founded", description: "Started with 5 students and a vision" },
@@ -25,7 +25,7 @@ export default function About() {
     { icon: Award, title: "EXCELLENCE", description: "High standards in everything we do" },
   ];
 
-  const getImpactColor = (impact) => {
+  const getImpactColor = (impact: string) => {
     switch (impact) {
       case "positive": return "bg-[#22C55E] text-white";
       case "negative": return "bg-red-500 text-white";
@@ -33,7 +33,7 @@ export default function About() {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "passed":
       case "signed":
@@ -44,6 +44,20 @@ export default function About() {
         return <Clock className="w-5 h-5" />;
     }
   };
+
+  const updates = [
+    {
+      "id": "billId",
+      "title": "New Update",
+    "content": "A very cool bill is introduced",
+    "bill_number": 100223,
+    "status": "proposed",
+    "impact": "positive",
+    "action_taken": "posted on social media public support for it",
+    "link_url": "https://google.com",
+    "priority": "medium"
+    }
+  ]
 
   return (
     <div>

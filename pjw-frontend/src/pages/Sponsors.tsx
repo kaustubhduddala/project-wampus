@@ -1,17 +1,29 @@
-import React from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+// import React from "react";
+// import { base44 } from "@/api/base44Client";
+// import { useQuery } from "@tanstack/react-query";
 import { Award, ExternalLink, Building } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "../components/ui/badge";
 
 export default function Sponsors() {
-  const { data: sponsors = [] } = useQuery({
-    queryKey: ["sponsors"],
-    queryFn: () => base44.entities.Sponsor.list(),
-    initialData: [],
-  });
+  // const { data: sponsors = [] } = useQuery({
+  //   queryKey: ["sponsors"],
+  //   queryFn: () => base44.entities.Sponsor.list(),
+  //   initialData: [],
+  // });
 
-  const activeSponsors = sponsors.filter(s => s.active);
+  // const activeSponsors = sponsors.filter(s => s.active);
+
+  const activeSponsors = [
+    {
+      "company_name": "HEB",
+      "logo_url": "",
+      "website_url": "https://www.google.com",
+      "tier": "gold",
+      "contribution_amount": 10000,
+      "description": "food distribution",
+      "active": true
+    }
+  ]
 
   const tierColors = {
     platinum: "bg-gray-300 text-gray-900",

@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// import { base44 } from "@/api/base44Client";
+// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Plus, Check, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { format } from "date-fns";
 
 export default function Deliveries() {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     volunteer_name: "",
@@ -22,37 +22,37 @@ export default function Deliveries() {
   });
   const [uploading, setUploading] = useState(false);
 
-  const { data: deliveries = [] } = useQuery({
-    queryKey: ["deliveries"],
-    queryFn: () => base44.entities.Delivery.list("-created_date"),
-    initialData: [],
-  });
+  // const { data: deliveries = [] } = useQuery({
+  //   queryKey: ["deliveries"],
+  //   queryFn: () => base44.entities.Delivery.list("-created_date"),
+  //   initialData: [],
+  // });
 
-  const createDeliveryMutation = useMutation({
-    mutationFn: (data: any) => base44.entities.Delivery.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-      setShowForm(false);
-      setFormData({
-        volunteer_name: "",
-        meals_delivered: "",
-        latitude: "",
-        longitude: "",
-        address: "",
-        notes: "",
-        photo_url: "",
-      });
-    },
-  });
+  // const createDeliveryMutation = useMutation({
+  //   mutationFn: (data: any) => base44.entities.Delivery.create(data),
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ["deliveries"] });
+  //     setShowForm(false);
+  //     setFormData({
+  //       volunteer_name: "",
+  //       meals_delivered: "",
+  //       latitude: "",
+  //       longitude: "",
+  //       address: "",
+  //       notes: "",
+  //       photo_url: "",
+  //     });
+  //   },
+  // });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createDeliveryMutation.mutate({
-      ...formData,
-      meals_delivered: parseInt(formData.meals_delivered),
-      latitude: parseFloat(formData.latitude),
-      longitude: parseFloat(formData.longitude),
-    });
+    // e.preventDefault();
+    // createDeliveryMutation.mutate({
+    //   ...formData,
+    //   meals_delivered: parseInt(formData.meals_delivered),
+    //   latitude: parseFloat(formData.latitude),
+    //   longitude: parseFloat(formData.longitude),
+    // });
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,12 +60,12 @@ export default function Deliveries() {
     if (!file) return;
 
     setUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData({ ...formData, photo_url: file_url });
-    } catch (error) {
-      console.error("Upload failed:", error);
-    }
+    // try {
+    //   const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    //   setFormData({ ...formData, photo_url: file_url });
+    // } catch (error) {
+    //   console.error("Upload failed:", error);
+    // }
     setUploading(false);
   };
 
@@ -86,8 +86,22 @@ export default function Deliveries() {
     }
   };
 
-  const totalMeals = deliveries.reduce((sum, d) => sum + (d.meals_delivered || 0), 0);
-
+  // const totalMeals = deliveries.reduce((sum, d) => sum + (d.meals_delivered || 0), 0);
+  const totalMeals = 500;
+  const deliveries = [
+    {
+      "id": "something",
+      "created_date": "01/10/2026",
+      "volunteer_name": "Bob",
+      "meals_delivered": 10,
+      "latitude": 21.34134,
+      "longitude": 21.34123,
+      "address": "564 Oak Street",
+      "notes": "delivery went awesomely",
+      "photo_url": "",
+      "status": "completed"
+    }
+  ]
   return (
     <div>
       {/* Hero Section */}
@@ -133,20 +147,21 @@ export default function Deliveries() {
 
       <div className="container mx-auto px-4 py-16">
         {/* Log New Delivery Button */}
-        {!showForm && (
+        { !showForm && (
           <div className="mb-8">
             <Button
               onClick={() => setShowForm(true)}
-              className="neo-button bg-[#22C55E] text-white text-lg px-8 py-6 font-black"
+              className="neo-button bg-[#22C55E]! text-white text-lg px-8 py-6 font-black"
             >
               <Plus className="w-5 h-5 mr-2" />
               LOG NEW DELIVERY
             </Button>
           </div>
-        )}
+        ) }
 
         {/* Delivery Form */}
-        {showForm && (
+
+        { showForm && (
           <Card className="neo-brutal-border neo-brutal-shadow mb-8">
             <CardHeader className="bg-[#22C55E]">
               <CardTitle className="font-black text-2xl text-white">NEW DELIVERY LOG</CardTitle>
@@ -202,7 +217,7 @@ export default function Deliveries() {
                     <Button
                       type="button"
                       onClick={getLocation}
-                      className="neo-button bg-black text-white font-black"
+                      className="neo-button bg-black! text-white font-black"
                     >
                       <MapPin className="w-4 h-4 mr-2" />
                       GET LOCATION
@@ -249,8 +264,8 @@ export default function Deliveries() {
                 <div className="flex gap-4">
                   <Button
                     type="submit"
-                    disabled={createDeliveryMutation.isPending}
-                    className="neo-button bg-[#22C55E] text-white font-black px-8"
+                    disabled={/*createDeliveryMutation.isPending*/ false}
+                    className="neo-button bg-[#22C55E]! text-white font-black px-8"
                   >
                     <Check className="w-5 h-5 mr-2" />
                     LOG DELIVERY
@@ -266,7 +281,7 @@ export default function Deliveries() {
               </form>
             </CardContent>
           </Card>
-        )}
+        ) }
 
         {/* Deliveries List */}
         <h2 className="text-3xl font-black mb-6">RECENT DELIVERIES</h2>

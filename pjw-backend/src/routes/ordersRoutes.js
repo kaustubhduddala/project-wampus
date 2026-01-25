@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const bookController = require("../controllers/ordersController");
+const ordersController = require("../controllers/ordersController");
 const prisma = require("../db/db");
 
 router.get("/", ordersController.getAllOrders);

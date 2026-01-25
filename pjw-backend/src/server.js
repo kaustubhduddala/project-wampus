@@ -1,5 +1,10 @@
 require('dotenv').config();
 
+// needed for JSON stringifying the BigInts in the Prisma Scheme
+BigInt.prototype.toJSON = function() {
+  return this.toString();
+};
+
 const express = require('express');
 const cors = require('cors');
 // initialize prisma
@@ -26,6 +31,12 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.send('Hello World');
 });
+
+const storeItemsRouter = require('./routes/storeItemsRoutes');
+app.use('/items', storeItemsRouter);
+
+const ordersRouter = require('./routes/ordersRoutes')
+app.use('/orders', ordersRouter);
 
 // start server
 const PORT = process.env.PORT || 3001;

@@ -38,6 +38,12 @@ app.use('/items', storeItemsRouter);
 const ordersRouter = require('./routes/ordersRoutes')
 app.use('/orders', ordersRouter);
 
+const sponsorsRouter = require('./routes/sponsorsRoutes');
+app.use('/sponsors', sponsorsRouter);
+
+const logosRouter = require('./routes/logosRoutes');
+app.use('/logos', logosRouter);
+
 // start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

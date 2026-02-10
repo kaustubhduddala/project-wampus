@@ -247,7 +247,7 @@ export function addPriorityToCells(
       }
     }
     const distToResource = minDist === Infinity ? 500 : minDist;
-    const resourceBoost = Math.exp(-distToResource / 300);
+    const resourceBoost = -Math.exp(-distToResource / 300);
 
     const needProxy = 1 / (1 + served30);
     const recencyGap = Math.min(1, lastServedDays / 14);

@@ -32,7 +32,7 @@ export default function CoverageLayer({
         [south, west],
         [north, east],
       ];
-      onCellClick(bounds);
+      onCellClick(bounds, cell.cell_id);
     },
     [onCellClick]
   );

@@ -38,6 +38,12 @@ app.use('/items', storeItemsRouter);
 const ordersRouter = require('./routes/ordersRoutes')
 app.use('/orders', ordersRouter);
 
+const moneyRaised = require('./routes/moneyRaisedRoutes')
+app.use('/money-raised', moneyRaised);
+
+const mealsDonated = require('./routes/mealsDonatedRoutes')
+app.use('/meals-donated', mealsDonated);
+
 // start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

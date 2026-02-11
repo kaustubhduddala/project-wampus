@@ -1,0 +1,50 @@
+{
+  "name": "MerchandiseItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in USD"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Product image URL"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "apparel",
+        "accessories",
+        "other"
+      ],
+      "default": "apparel"
+    },
+    "sizes_available": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Available sizes (S, M, L, XL, etc.)"
+    },
+    "in_stock": {
+      "type": "boolean",
+      "default": true
+    },
+    "stock_quantity": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "price"
+  ]
+}

@@ -38,11 +38,18 @@ app.use('/items', storeItemsRouter);
 const ordersRouter = require('./routes/ordersRoutes')
 app.use('/orders', ordersRouter);
 
+const sponsorsRouter = require('./routes/sponsorsRoutes');
+app.use('/sponsors', sponsorsRouter);
+
+const logosRouter = require('./routes/logosRoutes');
+app.use('/logos', logosRouter);
+
 const moneyRaised = require('./routes/moneyRaisedRoutes')
 app.use('/money-raised', moneyRaised);
 
 const mealsDonated = require('./routes/mealsDonatedRoutes')
 app.use('/meals-donated', mealsDonated);
+
 
 // start server
 const PORT = process.env.PORT || 3001;

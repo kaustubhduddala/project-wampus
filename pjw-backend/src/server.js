@@ -22,6 +22,8 @@ const app = express();
 // ROUTES
 const authRoutes = require('./routes/authRoutes');    
 const ordersRoutes = require('./routes/ordersRoutes');
+const fundraisingRoutes = require('./routes/fundraisingRoutes');
+const rolesRoutes = require('./routes/rolesRoutes');
 
 
 // --- Middleware ---
@@ -49,6 +51,9 @@ app.use('/heatmap', heatmapRouter);
 
 const rolesRouter = require('./routes/rolesRoutes');
 app.use('/roles', rolesRouter);
+
+const fundraisingRouter = require('./routes/fundraisingRoutes');
+app.use('/fundraising', fundraisingRouter);
 
 // start server
 const PORT = process.env.PORT || 3001;

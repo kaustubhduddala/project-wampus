@@ -14,6 +14,7 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.19.2",
+    "@supabase/supabase-js": "^2.93.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1"

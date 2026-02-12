@@ -4,7 +4,12 @@
  */
 
 import { latLngToCell, polygonToCells, cellToBoundary, cellToLatLng } from "h3-js";
+// ADD: Esri‑Leaflet client (used only to fetch the Feature Service)
+import * as EL from "esri-leaflet";
 
+// ADD: Austin HSO layer (sublayer 2) — the URL you provided
+const ARC_LAYER_URL =
+  "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/Austin_HSO_Homeless_Resources_Finder/FeatureServer/2";
 export interface DeliveryEvent {
   id: number;
   timestamp: string; // ISO UTC
@@ -13,7 +18,6 @@ export interface DeliveryEvent {
   meals_delivered: number;
   notes?: string;
 }
-
 export interface ResourceLocation {
   id: number;
   name: string;
@@ -23,6 +27,7 @@ export interface ResourceLocation {
   hours?: string;
   contact_info?: string;
 }
+
 
 /** Grid cell for coverage or priority overlay */
 export interface GridCell {
@@ -78,14 +83,113 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
   { id: 20, timestamp: "2025-11-01T15:00:00Z", lat: 30.285, lng: -97.740, meals_delivered: 8 },
 ];
 
+
 /** Mock resource locations (shelters, pantries) */
 export const MOCK_RESOURCES: ResourceLocation[] = [
-  { id: 1, name: "Caritas of Austin", type: "shelter", lat: 30.2713, lng: -97.7432 },
-  { id: 2, name: "Central Texas Food Bank", type: "pantry", lat: 30.2591, lng: -97.7214 },
-  { id: 3, name: "Front Steps", type: "shelter", lat: 30.2695, lng: -97.7388 },
-  { id: 4, name: "Trinity Center", type: "outreach", lat: 30.2682, lng: -97.7415 },
-  { id: 5, name: "Sunrise Community Church Pantry", type: "pantry", lat: 30.2821, lng: -97.7321 },
+  { id: 1,  name: "Violet KeepSafe Storage",                        type: "other",            lat: 30.2671793484391, lng: -97.7352217019655 },
+  { id: 2,  name: "Trinity Center",                                 type: "outreach",  lat: 30.2681929954468, lng: -97.739073804963 },
+  { id: 3,  name: "Sunrise HUB",                                    type: "outreach",  lat: 30.2288135374708, lng: -97.7894734015289 },
+  { id: 4,  name: "Charlie Center - Mosaic Church",                 type: "outreach",  lat: 30.4326639792242, lng: -97.7648079757563 },
+  { id: 5,  name: "Lifeworks Youth Resource Center",                type: "outreach",     lat: 30.2646052272508, lng: -97.707804245162 },
+  { id: 6,  name: "Austin Street Youth Ministry Basic Needs Closet",type: "outreach",     lat: 30.34495737853,   lng: -97.7350854119941 },
+  { id: 7,  name: "Micah 6 Street Youth Drop-in Center",            type: "outreach",     lat: 30.2846230149468, lng: -97.7425619867976 },
+  { id: 8,  name: "Austin Recreation Center",                       type: "outreach",   lat: 30.27865099309,   lng: -97.7495059729295 },
+
+
+  { id: 11, name: "Dittmar Recreational Center",                    type: "outreach",   lat: 30.184832727962,  lng: -97.8017568299741 },
+  { id: 13, name: "Dove Springs Recreation Center",                 type: "outreach",   lat: 30.187434080979,  lng: -97.7382141104972 },
+  { id: 15, name: "Gus Garcia Recreational Center",                 type: "outreach",   lat: 30.3538268152769, lng: -97.6816589926192 },
+  { id: 20, name: "Northwest Recreational Center",                  type: "outreach",   lat: 30.333721982162,  lng: -97.7518890318026 },
+  { id: 24, name: "Turner-Roberts Recreation Center",               type: "outreach",   lat: 30.3003988883405, lng: -97.6360368813062 },
+  { id: 27, name: "St. Andrew’s-Meal and Shower",                   type: "outreach",   lat: 30.4368576550592, lng: -97.6749119800797 },
+
+
+  { id: 28, name: "Parque Zaragoza Recreation Center",              type: "outreach",     lat: 30.2616878998895, lng: -97.7115189001394 },
+  { id: 29, name: "Pan Am Recreation Center",                       type: "outreach",     lat: 30.2581310040614, lng: -97.7207869746376 },
+  { id: 30, name: "Alamo Recreation Center",                        type: "outreach",     lat: 30.2828036002251, lng: -97.7201045008542 },
+  { id: 31, name: "Asian American Resource Center",                 type: "outreach",     lat: 30.3400795003301, lng: -97.6810655996786 },
+  { id: 32, name: "Austin Central Library",                         type: "outreach",     lat: 30.2657787002956, lng: -97.7519331004581 },
+  { id: 33, name: "Austin Nature & Science Center",                 type: "outreach",     lat: 30.2721723995491, lng: -97.7733194999329 },
+  { id: 35, name: "Lorraine \"Grandma\" Camacho Activity Center",   type: "outreach",     lat: 30.249520499655,  lng: -97.7233654994216 },
+  { id: 36, name: "Carver Branch, Austin Public Library",           type: "outreach",     lat: 30.2695730001854, lng: -97.7242180006262 },
+  { id: 37, name: "George Washington Carver Museum",                type: "outreach",     lat: 30.2700349998175, lng: -97.7240078002396 },
+  { id: 38, name: "Cepeda Branch, Austin Public Library",           type: "outreach",     lat: 30.2591246006112, lng: -97.7088354994326 },
+  { id: 39, name: "Conley-Guerrero Senior Activity Center",         type: "outreach",     lat: 30.2658332999387, lng: -97.7111111000322 },
+  { id: 40, name: "Dittmar Recreation Center",                      type: "outreach",     lat: 30.185050000119,  lng: -97.8020854004674 },
+  { id: 41, name: "Delores Duffie Recreation Center",               type: "outreach",     lat: 30.2716274005345, lng: -97.7143629995641 },
+  { id: 42, name: "Gus Garcia Recreation Center",                   type: "outreach",     lat: 30.3525000007483, lng: -97.681944399964 },
+  { id: 44, name: "Hampton Branch at Oak Hill, Austin Public Library", type: "outreach",   lat: 30.2175914001682, lng: -97.8549415998477 },
+  { id: 45, name: "Hancock Recreation Center",                      type: "outreach",     lat: 30.2989817002995, lng: -97.7244669004352 },
+  { id: 46, name: "Howson Branch, Austin Public Library",           type: "outreach",     lat: 30.2982409997613, lng: -97.7675161002281 },
+  { id: 47, name: "Dottie Jordan Recreation Center",                type: "outreach",     lat: 30.3141765000595, lng: -97.6735428002655 },
+  { id: 49, name: "Lamar Senior Activity Center",                   type: "outreach",     lat: 30.2971004996452, lng: -97.7485931004463 },
+  { id: 50, name: "Little Walnut Creek Branch, Austin Public Library", type: "outreach",   lat: 30.3632510006666, lng: -97.6984793004257 },
+  { id: 51, name: "McBeth Recreation Center",                       type: "outreach",     lat: 30.2657855000327, lng: -97.7788529999121 },
+  { id: 52, name: "Menchaca Road Branch, Austin Public Library",    type: "outreach",     lat: 30.2164576000227, lng: -97.7972974994815 },
+  { id: 53, name: "Rodolfo \"Rudy\" Mendez Recreation Center",      type: "outreach",     lat: 30.2522785651466, lng: -97.7183996519861 },
+  { id: 54, name: "Milwood Branch, Austin Public Library",          type: "outreach",     lat: 30.4222331999294, lng: -97.7161654000114 },
+  { id: 55, name: "Montopolis Recreation and Community Center",     type: "outreach",     lat: 30.2321918004451, lng: -97.6998610997781 },
+  { id: 57, name: "John Gillum Branch, Austin Public Library",      type: "outreach",     lat: 30.3621575004339, lng: -97.7304778999038 },
+  { id: 58, name: "Northwest Recreation Center",                    type: "outreach",     lat: 30.3337018002044, lng: -97.7519120008287 },
+  { id: 60, name: "Pickfair Community Center",                      type: "outreach",     lat: 30.4394312004398, lng: -97.8109576994084 },
+  { id: 61, name: "Pleasant Hill Branch, Austin Public Library",    type: "outreach",     lat: 30.1922470000788, lng: -97.777166100355 },
+  { id: 62, name: "Ruiz Branch, Austin Public Library",             type: "outreach",     lat: 30.2298764998623, lng: -97.7067775992539 },
+  { id: 63, name: "St. John Branch, Austin Public Library",         type: "outreach",     lat: 30.332040599736,  lng: -97.6937090998417 },
+  { id: 64, name: "South Austin Recreation Center",                 type: "outreach",     lat: 30.2416666998748, lng: -97.7686111007454 },
+  { id: 65, name: "South Austin Senior Activity Center",            type: "outreach",     lat: 30.2331822994921, lng: -97.7845456005114 },
+  { id: 66, name: "Southeast Branch, Austin Public Library",        type: "outreach",     lat: 30.1876810000409, lng: -97.7420340001953 },
+  { id: 67, name: "Spicewood Springs Branch, Austin Public Library",type: "outreach",     lat: 30.4337082995491, lng: -97.7730809002043 },
+  { id: 68, name: "Terrazas Branch, Austin Public Library",         type: "outreach",     lat: 30.2599070002485, lng: -97.7334400002326 },
+  { id: 69, name: "Turner Roberts Recreation Center",               type: "outreach",     lat: 30.3000214000607, lng: -97.6366892001363 },
+  { id: 70, name: "Twin Oaks Branch, Austin Public Library",        type: "outreach",     lat: 30.2486705000308, lng: -97.7623757003197 },
+  { id: 71, name: "University Hills Branch, Austin Public Library", type: "outreach",     lat: 30.3088197996658, lng: -97.6664907998055 },
+  { id: 72, name: "Windsor Park Branch, Austin Public Library",     type: "outreach",     lat: 30.3115264995687, lng: -97.6903153006308 },
+  { id: 73, name: "Yarborough Branch, Austin Public Library",       type: "outreach",     lat: 30.3234702003055, lng: -97.7407240993059 },
+
+
+  { id: 76, name: "Psychiatric Emergency Services (PES)",           type: "outreach",      lat: 30.2747560060977, lng: -97.6980069734661 },
+  { id: 77, name: "Integral Care St. John Clinic",                  type: "outreach",      lat: 30.3310639971574, lng: -97.7039860364556 },
+  { id: 78, name: "Integral Care Dove Springs Clinic",              type: "outreach",      lat: 30.2047790168834, lng: -97.7578100086016 },
+  { id: 79, name: "Integral Care East 2nd Street Clinic",           type: "outreach",      lat: 30.2586909990124, lng: -97.7273629967746 },
+  { id: 80, name: "Integral Care Stonegate Clinic",                 type: "outreach",      lat: 30.2053170235571, lng: -97.8126605531256 },
+  { id: 81, name: "Integral Care Oak Springs Clinic",               type: "outreach",      lat: 30.2736080206364, lng: -97.7006269887585 },
+
+
+  { id: 82, name: "ARCH CommUnityCare Clinic",                      type: "outreach",  lat: 30.2679480147884, lng: -97.7376220271655 },
+  { id: 83, name: "Black Men's Health Clinic",                      type: "outreach",  lat: 30.3203829798504, lng: -97.6928889833846 },
+  { id: 84, name: "Capital Plaza Specialty Clinic",                 type: "outreach",  lat: 30.3122430203165, lng: -97.7076739900422 },
+  { id: 85, name: "Care Connections Clinic",                        type: "outreach",  lat: 30.2287759865794, lng: -97.7689089895105 },
+  { id: 86, name: "Chalmers Court Health Center",                   type: "outreach",  lat: 30.2593799914533, lng: -97.7237929765736 },
+  { id: 87, name: "David Powell HIV Health Center",                 type: "outreach",  lat: 30.3053639923734, lng: -97.7137979761325 },
+  { id: 88, name: "East Austin Health Center",                      type: "outreach",  lat: 30.2595809894914, lng: -97.7275469795486 },
+  { id: 90, name: "Hornsby Bend Health and Wellness Center",        type: "outreach",  lat: 30.240241338208,  lng: -97.5908586417756 },
+  { id: 91, name: "North Central Health Center",                    type: "outreach",  lat: 30.3856660194654, lng: -97.6939610288005 },
+  { id: 92, name: "Oak Hill Health Center",                         type: "outreach",  lat: 30.251454664956,  lng: -97.8937002208437 },
+  { id: 93, name: "Women's OB/GYN Clinic at Carousel Pediatrics East Riverside", type: "outreach", lat: 30.238118868485, lng: -97.7268620091553 },
+  { id: 94, name: "Women's OB/GYN Clinic Springdale",               type: "outreach",  lat: 30.3131089171534, lng: -97.6639590778297 },
+  { id: 95, name: "Rundberg Health Center",                         type: "outreach",  lat: 30.3565343397993, lng: -97.6858258384681 },
+  { id: 96, name: "Sandra Joy Anderson Community Health and Wellness Center", type: "outreach", lat: 30.2664240171534, lng: -97.7222040191886 },
+  { id: 97, name: "South Austin Health Center",                     type: "outreach",  lat: 30.2394749830684, lng: -97.7606919583706 },
+  { id: 98, name: "Southeast Walk-in Clinic",                       type: "outreach",  lat: 30.2143550059844, lng: -97.7096879937295 },
+  { id: 99, name: "William Cannon Health Center",                   type: "outreach",  lat: 30.1876949799213, lng: -97.7708509926575 },
+
+
+  { id: 100, name: "Angel House Soup Kitchen",                      type: "pantry",               lat: 30.2608026726214, lng: -97.734849071138 },
+  { id: 101, name: "Caritas of Austin - Lunch",                     type: "pantry",               lat: 30.267421370875,  lng: -97.737898376529 },
+  { id: 102, name: "Trinity Center Meals",                          type: "pantry",               lat: 30.2682002711674, lng: -97.7392164858078 },
+  { id: 103, name: "Texas Harm Reduction Alliance Drop-in Center",  type: "outreach", lat: 30.2572030016538, lng: -97.7254329797511 },
+  { id: 104, name: "Mobile Texas Harm Reduction Alliance near CMS South", type: "outreach", lat: 30.2003591247057, lng: -97.7947850616055 },
+  { id: 105, name: "Mobile Texas Harm Reduction Alliance St. Johns Neighborhood", type: "outreach", lat: 30.3326108418834, lng: -97.7002136516778 },
+  { id: 106, name: "Mobile Texas Harm Reduction Alliance at East Oltorf", type: "outreach", lat: 30.2311743796494, lng: -97.7336653274689 },
+  { id: 107, name: "Mobile Texas Harm Reduction Alliance Near Springdale and Oak Springs", type: "outreach", lat: 30.2740146429938, lng: -97.6912783962339 },
+  { id: 108, name: "University United Methodist Church Open Door Ministry Saturday Breakfast", type: "pantry", lat: 30.2882211982704, lng: -97.7411142633046 },
+  { id: 109, name: "Central Texas Food Bank", type: "pantry", lat: 30.2591, lng: -97.7214 },
+  { id: 110, name: "Front Steps", type: "shelter", lat: 30.2695, lng: -97.7388 },
+  { id: 111, name: "Trinity Center", type: "outreach", lat: 30.2682, lng: -97.7415 },
+  { id: 112, name: "Sunrise Community Church Pantry", type: "pantry", lat: 30.2821, lng: -97.7321 },
+  { id: 113, name: "Caritas of Austin", type: "shelter", lat: 30.2713, lng: -97.7432 },
 ];
+
 
 export type TimeFilterKey = "7" | "30" | "90" | "all";
 
@@ -213,7 +317,7 @@ const W3 = 0.1;
 export function addPriorityToCells(
   cells: GridCell[],
   eventsLast30: DeliveryEvent[],
-  resources: ResourceLocation[] = MOCK_RESOURCES
+  resources: ResourceLocation[]
 ): GridCell[] {
   const now = new Date();
   const thirtyDaysAgo = new Date(now);
@@ -348,4 +452,60 @@ export function priorityColor(score: number): string {
   const g = Math.round(197 - t * 197);
   const b = Math.round(44);
   return `rgb(${r},${g},${b})`;
+}
+/** Fetch Austin HSO resources from ArcGIS and convert to ResourceLocation[] */
+export async function fetchHSOResources(): Promise<ResourceLocation[]> {
+  // Build a FeatureLayer client (Esri‑Leaflet)
+  const layer = (EL as any).featureLayer({ url: ARC_LAYER_URL });
+
+  // Wrap esri-leaflet query() in a Promise so we can await it
+  const featureCollection: { features: any[] } = await new Promise((resolve, reject) => {
+    layer
+      .query()
+      .where("1=1")
+      .returnGeometry(true)
+      .outFields(["*"])
+      .run((err: any, fc: any) => (err ? reject(err) : resolve(fc)));
+  });
+
+  const features = featureCollection?.features ?? [];
+
+  // Map ArcGIS features → your ResourceLocation[]
+  const resources: ResourceLocation[] = features
+    .map((f: any, i: number) => {
+      // GeoJSON Point: [lng, lat]
+      const [lng, lat] = f?.geometry?.coordinates ?? [NaN, NaN];
+      const p = f?.properties ?? {};
+
+      // Try common field names; adjust after first console.log if needed
+      const name =
+        (p.Name ?? p.NAME ?? p.SiteName ?? p.Facility ?? p.Organization ?? p.Program ?? `Location ${i + 1}`) as string;
+
+      const typeRaw = String(p.Type ?? p.Category ?? p.ServiceType ?? p.ProgramType ?? "").toLowerCase();
+      const type: ResourceLocation["type"] =
+        typeRaw.includes("shelter") ? "shelter" :
+        typeRaw.includes("pantry") || typeRaw.includes("food") ? "pantry" :
+        typeRaw.includes("outreach") ? "outreach" : "other";
+
+      const hours = (p.Hours ?? p.OperatingHours) as string | undefined;
+      const contact = (p.Phone ?? p.Contact ?? p.Website ?? p.Email) as string | undefined;
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+      return {
+        id: Number(p.OBJECTID ?? p.ObjectID ?? i + 1),
+        name,
+        type,
+        lat,
+        lng,
+        hours,
+        contact_info: contact,
+      } as ResourceLocation;
+    })
+    .filter(Boolean) as ResourceLocation[];
+
+  // Uncomment once to inspect actual fields, then tweak mapping above if needed:
+  // console.log("HSO sample properties:", features[0]?.properties);
+
+  return resources;
 }

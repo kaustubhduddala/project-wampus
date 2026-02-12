@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback, useState } from "react";
+import { useMemo, useRef, useCallback, useState, useEffect } from "react";
 import { MapPin, Grid3X3, CircleDot, Building2, Zap, List } from "lucide-react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import L from "leaflet";
@@ -13,6 +13,8 @@ import {
   PRIORITY_SPOTLIGHT_TOP_PERCENT,
   type TimeFilterKey,
   type GridCell,
+  type ResourceLocation,
+  fetchHSOResources,
 } from "@/data/mockDeliveryData";
 import MapController from "@/components/MapDashboard/MapController";
 import CoverageLayer from "@/components/MapDashboard/CoverageLayer";
@@ -34,7 +36,19 @@ export default function HeatmapSection() {
   const [showResources, setShowResources] = useState(false);
   const [clusterEvents, setClusterEvents] = useState(true);
   const [zoom, setZoom] = useState(12);
+// Live resources from HSO Feature Service (fallback to mock on error)
+  const [resources, setResources] = useState<ResourceLocation[] | null>(null);
 
+  useEffect(() => {
+    let mounted = true;
+    fetchHSOResources()
+      .then((data) => { if (mounted) setResources(data); })
+      .catch((e) => {
+        console.error("HSO fetch failed; using MOCK_RESOURCES", e);
+        if (mounted) setResources(MOCK_RESOURCES);
+      });
+    return () => { mounted = false; };
+  }, []);
   const filteredEvents = useMemo(
     () => filterEventsByTime(MOCK_DELIVERY_EVENTS, timeFilter),
     [timeFilter]
@@ -51,8 +65,8 @@ export default function HeatmapSection() {
   );
 
   const cellsWithPriority = useMemo(
-    () => addPriorityToCells(coverageCells, eventsLast30, MOCK_RESOURCES),
-    [coverageCells, eventsLast30]
+    () => addPriorityToCells(coverageCells, eventsLast30, resources ?? MOCK_RESOURCES),
+    [coverageCells, eventsLast30, resources]
   );
 
   const maxMeals = useMemo(
@@ -99,13 +113,15 @@ export default function HeatmapSection() {
     mapRef.current?.flyToBounds(bounds, { maxZoom: ZOOM_THRESHOLD, duration: 0.5 });
   }, []);
 
+  
   const handleCellClick = useCallback(
-    (bounds: L.LatLngBoundsExpression) => {
+    (bounds: L.LatLngBoundsExpression, _cellId?: string) => {
       flyToBounds(bounds);
       if (autoMode) setZoom(ZOOM_THRESHOLD);
     },
     [flyToBounds, autoMode]
   );
+
 
   const priorityLabel = (score: number) => {
     if (score >= 0.7) return "High";
@@ -244,7 +260,7 @@ export default function HeatmapSection() {
                 subdomains="abcd"
                 maxZoom={19}
               />
-              {showResources && <ResourceLayer resources={MOCK_RESOURCES} />}
+              {showResources && <ResourceLayer resources={resources ?? MOCK_RESOURCES} />}
               {effectiveLayer === "coverage" && (
                 <CoverageLayer
                   cells={coverageCells}

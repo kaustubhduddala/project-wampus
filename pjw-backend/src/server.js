@@ -47,6 +47,8 @@ app.use('/orders', ordersRouter);
 const heatmapRouter = require('./routes/heatmapRoutes');
 app.use('/heatmap', heatmapRouter);
 
+const rolesRouter = require('./routes/rolesRoutes');
+app.use('/roles', rolesRouter);
 
 // start server
 const PORT = process.env.PORT || 3001;

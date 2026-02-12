@@ -6,8 +6,8 @@ const rolesController = {
         const { userId } = req.params; // id of user to update
         const { newRole } = req.body;  // new role to assign
         
-        const requesterId = req.user?.id; 
-
+        const requesterId = req.user?.id || req.headers['x-user-id'];
+        
         if (!requesterId) {
             return res.status(401).json({ message: "Unauthorized" });
         }

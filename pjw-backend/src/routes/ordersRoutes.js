@@ -3,7 +3,10 @@ const router = express.Router();
 
 const ordersController = require("../controllers/ordersController");
 
-router.get("/", ordersController.getAllOrders);
-router.get("/:id", ordersController.getOrderById);
+const requireAuth = require("../middleware/auth"); 
+
+//Apply the middleware to protected routes
+router.get("/", requireAuth, ordersController.getAllOrders);
+router.get("/:id", requireAuth, ordersController.getOrderById);
 
 module.exports = router;

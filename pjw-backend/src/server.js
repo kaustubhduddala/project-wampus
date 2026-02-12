@@ -7,7 +7,6 @@ BigInt.prototype.toJSON = function() {
 
 const express = require('express');
 const cors = require('cors');
-// initialize prisma
 const prisma = require('./db/db');
 
 // --- 2. VERIFY ENV & DB CONNECTION ---
@@ -20,11 +19,18 @@ if (!process.env.DATABASE_URL) {
 
 const app = express();
 
+// ROUTES
+const authRoutes = require('./routes/authRoutes');    
+const ordersRoutes = require('./routes/ordersRoutes');
+
+
 // --- Middleware ---
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' })); // Allow all for dev, restrict in prod
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*' })); 
 app.use(express.json());
 
-// --- ROUTES ---
+// --- MOUNT ROUTES ---
+app.use('/api/auth', authRoutes);
+app.use('/api/orders', ordersRoutes);
 
 
 // Example: Health Check

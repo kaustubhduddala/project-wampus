@@ -87,7 +87,7 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
 /** Mock resource locations (shelters, pantries) */
 export const MOCK_RESOURCES: ResourceLocation[] = [
   { id: 1,  name: "Violet KeepSafe Storage",                        type: "other",            lat: 30.2671793484391, lng: -97.7352217019655 },
-  { id: 2,  name: "Trinity Center",                                 type: "outreach",  lat: 30.2681929954468, lng: -97.739073804963 },
+
   { id: 3,  name: "Sunrise HUB",                                    type: "outreach",  lat: 30.2288135374708, lng: -97.7894734015289 },
   { id: 4,  name: "Charlie Center - Mosaic Church",                 type: "outreach",  lat: 30.4326639792242, lng: -97.7648079757563 },
   { id: 5,  name: "Lifeworks Youth Resource Center",                type: "outreach",     lat: 30.2646052272508, lng: -97.707804245162 },
@@ -117,7 +117,7 @@ export const MOCK_RESOURCES: ResourceLocation[] = [
   { id: 39, name: "Conley-Guerrero Senior Activity Center",         type: "outreach",     lat: 30.2658332999387, lng: -97.7111111000322 },
   { id: 40, name: "Dittmar Recreation Center",                      type: "outreach",     lat: 30.185050000119,  lng: -97.8020854004674 },
   { id: 41, name: "Delores Duffie Recreation Center",               type: "outreach",     lat: 30.2716274005345, lng: -97.7143629995641 },
-  { id: 42, name: "Gus Garcia Recreation Center",                   type: "outreach",     lat: 30.3525000007483, lng: -97.681944399964 },
+
   { id: 44, name: "Hampton Branch at Oak Hill, Austin Public Library", type: "outreach",   lat: 30.2175914001682, lng: -97.8549415998477 },
   { id: 45, name: "Hancock Recreation Center",                      type: "outreach",     lat: 30.2989817002995, lng: -97.7244669004352 },
   { id: 46, name: "Howson Branch, Austin Public Library",           type: "outreach",     lat: 30.2982409997613, lng: -97.7675161002281 },
@@ -185,7 +185,7 @@ export const MOCK_RESOURCES: ResourceLocation[] = [
   { id: 108, name: "University United Methodist Church Open Door Ministry Saturday Breakfast", type: "pantry", lat: 30.2882211982704, lng: -97.7411142633046 },
   { id: 109, name: "Central Texas Food Bank", type: "pantry", lat: 30.2591, lng: -97.7214 },
   { id: 110, name: "Front Steps", type: "shelter", lat: 30.2695, lng: -97.7388 },
-  { id: 111, name: "Trinity Center", type: "outreach", lat: 30.2682, lng: -97.7415 },
+
   { id: 112, name: "Sunrise Community Church Pantry", type: "pantry", lat: 30.2821, lng: -97.7321 },
   { id: 113, name: "Caritas of Austin", type: "shelter", lat: 30.2713, lng: -97.7432 },
 ];
@@ -310,9 +310,58 @@ export function buildCoverageGrid(events: DeliveryEvent[]): GridCell[] {
 
 /** Priority weights (explainable MVP) */
 const W1 = 0.5;
-const W2 = 0.4;
-const W3 = 0.1;
+const W2 = 0.3;
+const W3 = 0.2;
+// ------------------------------
+// Multi-resource influence settings (tweak as needed)
+// ------------------------------
+const K_NEAREST_RESOURCES = 3;            // how many nearest resources to consider
+const RESOURCE_DECAY_M = 300;             // lambda (meters) for exp(-d / lambda)
+const RESOURCE_TYPE_WEIGHT: Record<ResourceLocation["type"], number> = {
+  pantry: 1.0,
+  shelter: 0.9,
+  outreach: 0.6,
+  other: 0.5,
+};
 
+/**
+ * Compute multi-resource proximity density for a point using the K nearest resources.
+ * Returns:
+ *  - density in [0, 1] (higher = more/closer resources)
+ *  - nearest: the top K resources with distances (meters), for explainability
+ */
+function multiResourceInfluence(
+  lat: number,
+  lng: number,
+  resources: ResourceLocation[],
+  k: number = K_NEAREST_RESOURCES,
+  lambdaM: number = RESOURCE_DECAY_M
+): { density: number; nearest: { name: string; dist: number }[] } {
+  if (!resources.length) return { density: 0, nearest: [] };
+
+  // compute distances to all resources
+  const scored = resources.map((r) => {
+    const d = distMeters(lat, lng, r.lat, r.lng);
+    const wType = RESOURCE_TYPE_WEIGHT[r.type] ?? 0.5;
+    // kernel contribution per resource
+    const kVal = wType * Math.exp(-d / lambdaM);
+    return { name: r.name, dist: d, wType, kVal };
+  });
+
+  // take k nearest resources
+  scored.sort((a, b) => a.dist - b.dist);
+  const nearest = scored.slice(0, Math.max(1, k));
+
+  // normalize density to 0..1 by the sum of their type weights (max contribution if d=0)
+  const sumWeights = nearest.reduce((s, r) => s + r.wType, 0) || 1;
+  const sumKernel  = nearest.reduce((s, r) => s + r.kVal, 0);
+  const density = Math.min(1, sumKernel / sumWeights);
+
+  return {
+    density,
+    nearest: nearest.map((n) => ({ name: n.name, dist: n.dist })),
+  };
+}
 /** Add priority score and reason to each cell; optionally use resources */
 export function addPriorityToCells(
   cells: GridCell[],
@@ -320,9 +369,8 @@ export function addPriorityToCells(
   resources: ResourceLocation[]
 ): GridCell[] {
   const now = new Date();
-  const thirtyDaysAgo = new Date(now);
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  // Aggregate recent activity by cell (last 30d)
   const mealsByCell = new Map<string, number>();
   const lastServedByCell = new Map<string, Date>();
   for (const e of eventsLast30) {
@@ -341,34 +389,35 @@ export function addPriorityToCells(
       : 999;
 
     const [clat, clng] = cellCenter(cell);
-    let minDist = Infinity;
-    let nearestName = "";
-    for (const r of resources) {
-      const d = distMeters(clat, clng, r.lat, r.lng);
-      if (d < minDist) {
-        minDist = d;
-        nearestName = r.name;
-      }
-    }
-    const distToResource = minDist === Infinity ? 500 : minDist;
-    const resourceBoost = -Math.exp(-distToResource / 300);
 
-    const needProxy = 1 / (1 + served30);
-    const recencyGap = Math.min(1, lastServedDays / 14);
-    const priority_score = W1 * needProxy + W2 * recencyGap + W3 * resourceBoost;
+    // ---- MULTI-RESOURCE INFLUENCE (K-nearest with exponential decay) ----
+    const { density, nearest } = multiResourceInfluence(clat, clng, resources);
+    // higher density -> more/closer resources -> lower priority
+    const resourcePenalty = -density; // ∈ [-1, 0]
 
+    // ---- MAIN SCORE ----
+    const needProxy = 1 / (1 + served30);                // high when few meals
+    const recencyGap = Math.min(1, lastServedDays / 14); // high when not served recently
+    const priority_score = W1 * needProxy + W2 * recencyGap + W3 * resourcePenalty;
+
+    // ---- Explainability fields ----
     const reason: string[] = [];
     if (served30 <= 5) reason.push("Low meals delivered recently");
     if (lastServedDays >= 7) reason.push(`Not served in ${lastServedDays} days`);
-    if (nearestName) reason.push(`Near resource: ${nearestName} (${Math.round(distToResource)}m)`);
+    if (nearest.length) {
+      const list = nearest.slice(0, 3)
+        .map((n) => `${n.name} (${Math.round(n.dist)}m)`)
+        .join(", ");
+      reason.push(`Nearby resources: ${list}`);
+    }
 
     return {
       ...cell,
       priority_score,
       served_meals_30d: served30,
       last_served_days: lastServedDays === 999 ? undefined : lastServedDays,
-      nearest_resource: nearestName || undefined,
-      dist_to_resource_m: nearestName ? Math.round(distToResource) : undefined,
+      nearest_resource: nearest[0]?.name,
+      dist_to_resource_m: nearest[0] ? Math.round(nearest[0].dist) : undefined,
       reason: reason.length ? reason : undefined,
     };
   });

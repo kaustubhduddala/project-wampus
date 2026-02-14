@@ -432,7 +432,7 @@ export function getTopPriorityCells(cells: GridCell[], n: number): GridCell[] {
 }
 
 /** Top percentile for priority spotlight (only show this % of cells). */
-export const PRIORITY_SPOTLIGHT_TOP_PERCENT = 15;
+export const PRIORITY_SPOTLIGHT_TOP_PERCENT = 65;
 
 /**
  * Get cells in the top `topPercent` by priority_score (percentile-based).

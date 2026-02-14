@@ -18,6 +18,7 @@ import {
 } from "@/data/mockDeliveryData";
 import MapController from "@/components/MapDashboard/MapController";
 import CoverageLayer from "@/components/MapDashboard/CoverageLayer";
+import CoverageHeatmapLayer from "@/components/MapDashboard/CoverageHeatmapLayer";
 import EventLayer from "@/components/MapDashboard/EventLayer";
 import ResourceLayer from "@/components/MapDashboard/ResourceLayer";
 import PriorityMarkersLayer from "@/components/MapDashboard/PriorityMarkersLayer";
@@ -243,15 +244,16 @@ export default function HeatmapSection() {
         ) : null}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-6 min-h-[500px]">
         {/* Map */}
-        <div className="bg-white neo-brutal-border neo-brutal-shadow-sm overflow-hidden">
-          <div className="min-h-[400px] w-full">
+        <div className="bg-white neo-brutal-border neo-brutal-shadow-sm overflow-hidden flex flex-col min-h-[400px] relative">
+          <div className="flex-1 min-h-[400px] w-full relative overflow-hidden">
             <MapContainer
               center={WEST_CAMPUS_CENTER}
               zoom={14}
-              className="h-full min-h-[400px] w-full"
+              className="h-full w-full"
               scrollWheelZoom
+              zoomControl={false}
             >
               <MapController onMapReady={onMapReady} onZoomChange={setZoom} />
               <TileLayer
@@ -262,12 +264,7 @@ export default function HeatmapSection() {
               />
               {showResources && <ResourceLayer resources={resources ?? MOCK_RESOURCES} />}
               {effectiveLayer === "coverage" && (
-                <CoverageLayer
-                  cells={coverageCells}
-                  mode="coverage"
-                  maxMeals={maxMeals}
-                  onCellClick={handleCellClick}
-                />
+                <CoverageHeatmapLayer events={filteredEvents} />
               )}
               {effectiveLayer === "events" && (
                 <EventLayer
@@ -294,14 +291,20 @@ export default function HeatmapSection() {
               )}
             </MapContainer>
           </div>
-          <div className="p-3 bg-[#F5F5F5] neo-brutal-border-thin border-t flex flex-wrap gap-4 justify-center text-xs font-bold">
+          <div className="flex-shrink-0 p-3 bg-[#F5F5F5] neo-brutal-border-thin border-t flex flex-wrap gap-4 justify-center text-xs font-bold">
             {effectiveLayer === "coverage" && (
               <>
                 <span className="flex items-center gap-1">
-                  <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#fef2f2" }} /> Low meals
+                  <span className="w-3 h-3 rounded-sm shadow-sm" style={{ backgroundColor: "#fef3c7" }} /> Low
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#ef4444" }} /> High meals
+                  <span className="w-3 h-3 rounded-sm shadow-sm" style={{ backgroundColor: "#fb923c" }} /> Medium
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-sm shadow-sm" style={{ backgroundColor: "#dc2626" }} /> High
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-sm shadow-sm" style={{ backgroundColor: "#991b1b" }} /> Peak
                 </span>
               </>
             )}

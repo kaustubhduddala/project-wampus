@@ -20,6 +20,7 @@ if (!process.env.DATABASE_URL) {
 const app = express();
 
 // ROUTES
+const adminStatsRouter = require('./routes/adminStatsRoutes');
 const authRoutes = require('./routes/authRoutes');    
 const ordersRoutes = require('./routes/ordersRoutes');
 const fundraisingRoutes = require('./routes/fundraisingRoutes');
@@ -33,6 +34,7 @@ app.use(express.json());
 // --- MOUNT ROUTES ---
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/admin-stats', adminStatsRouter);
 
 
 // Example: Health Check

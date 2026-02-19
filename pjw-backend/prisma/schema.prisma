@@ -461,6 +461,8 @@ model org_info {
   vision        String?
   money_raised  Float?
   meals_donated BigInt?
+  active_volunteers Int?
+  percent_growth Float?
 
   @@schema("public")
 }

@@ -60,27 +60,267 @@ const WEST_CAMPUS_BOUNDS = {
 const H3_RES = 10;
 
 /** Mock delivery events spread over last 90 days */
+
 export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
-  { id: 1, timestamp: "2026-02-05T14:00:00Z", lat: 30.286, lng: -97.742, meals_delivered: 12, notes: "Near Guad and 24th" },
-  { id: 2, timestamp: "2026-02-04T18:30:00Z", lat: 30.284, lng: -97.738, meals_delivered: 8 },
-  { id: 3, timestamp: "2026-02-03T12:00:00Z", lat: 30.287, lng: -97.745, meals_delivered: 15 },
-  { id: 4, timestamp: "2026-02-01T17:00:00Z", lat: 30.282, lng: -97.741, meals_delivered: 10 },
-  { id: 5, timestamp: "2026-01-30T11:00:00Z", lat: 30.286, lng: -97.742, meals_delivered: 14 },
-  { id: 6, timestamp: "2026-01-28T16:00:00Z", lat: 30.290, lng: -97.735, meals_delivered: 6 },
-  { id: 7, timestamp: "2026-01-25T13:00:00Z", lat: 30.281, lng: -97.748, meals_delivered: 9 },
-  { id: 8, timestamp: "2026-01-22T19:00:00Z", lat: 30.288, lng: -97.740, meals_delivered: 11 },
-  { id: 9, timestamp: "2026-01-18T14:00:00Z", lat: 30.285, lng: -97.743, meals_delivered: 7 },
-  { id: 10, timestamp: "2026-01-15T10:00:00Z", lat: 30.279, lng: -97.739, meals_delivered: 13 },
-  { id: 11, timestamp: "2026-01-10T15:00:00Z", lat: 30.292, lng: -97.737, meals_delivered: 5 },
-  { id: 12, timestamp: "2026-01-05T12:00:00Z", lat: 30.283, lng: -97.746, meals_delivered: 8 },
-  { id: 13, timestamp: "2025-12-28T17:00:00Z", lat: 30.287, lng: -97.741, meals_delivered: 10 },
-  { id: 14, timestamp: "2025-12-20T11:00:00Z", lat: 30.284, lng: -97.744, meals_delivered: 9 },
-  { id: 15, timestamp: "2025-12-12T16:00:00Z", lat: 30.289, lng: -97.738, meals_delivered: 6 },
-  { id: 16, timestamp: "2025-12-05T14:00:00Z", lat: 30.281, lng: -97.742, meals_delivered: 11 },
-  { id: 17, timestamp: "2025-11-28T13:00:00Z", lat: 30.286, lng: -97.739, meals_delivered: 7 },
-  { id: 18, timestamp: "2025-11-20T18:00:00Z", lat: 30.290, lng: -97.736, meals_delivered: 4 },
-  { id: 19, timestamp: "2025-11-10T10:00:00Z", lat: 30.278, lng: -97.747, meals_delivered: 12 },
-  { id: 20, timestamp: "2025-11-01T15:00:00Z", lat: 30.285, lng: -97.740, meals_delivered: 8 },
+  {
+    id: 1,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2850878,
+    lng: -97.7419413,
+    meals_delivered: 1,
+    notes:
+      "Notes: Usually the same singular man, or collection of 3 men on a bench at this street corner."
+  },
+  {
+    id: 2,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.286301,
+    lng: -97.741841,
+    meals_delivered: 1,
+    notes:
+      "Note: Occasionally we see homeless people down this stretch of guad, but it isnt as consistent as other markers."
+  },
+  {
+    id: 3,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2877866,
+    lng: -97.7414015,
+    meals_delivered: 1,
+    notes:
+      "There is often a person or two on the steps outside the church here whom we try to feed."
+  },
+  {
+    id: 4,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2876426,
+    lng: -97.7418909,
+    meals_delivered: 1,
+    notes:
+      "Often a person or two around this corner who we are able to feed"
+  },
+  {
+    id: 5,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2888374,
+    lng: -97.7419425,
+    meals_delivered: 1,
+    notes:
+      "On Mondays, there are a large congregation of Homeless here for a weekly clothing drive that occurs at 5pm, we will be feeding them there next semester"
+  },
+  {
+    id: 6,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2901841,
+    lng: -97.7414667,
+    meals_delivered: 1,
+    notes:
+      "There is sometimes a person or two seated at the bench outside moxie who we can feed"
+  },
+  {
+    id: 7,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2905661,
+    lng: -97.7418717,
+    meals_delivered: 1,
+    notes:
+      "There are always people outside the seven eleven directly, and in the alley"
+  },
+  {
+    id: 8,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2907722,
+    lng: -97.7417604,
+    meals_delivered: 1,
+    notes: "Here as well"
+  },
+  {
+    id: 9,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2910987,
+    lng: -97.7414008,
+    meals_delivered: 1,
+    notes:
+      "This Bus stop is a very consistently populated Homeless marker"
+  },
+  {
+    id: 10,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2919142,
+    lng: -97.7415616,
+    meals_delivered: 1,
+    notes: "Occasionally a couple people on this side of Taos"
+  },
+  {
+    id: 11,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2921968,
+    lng: -97.7414999,
+    meals_delivered: 1,
+    notes: "Consistently people here"
+  },
+  {
+    id: 12,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2921412,
+    lng: -97.7417627,
+    meals_delivered: 1,
+    notes: "Consistently people here"
+  },
+  {
+    id: 13,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2921075,
+    lng: -97.7428622,
+    meals_delivered: 1,
+    notes:
+      "down this stretch of Nueces but particularly here, there are often homless people lingering here"
+  },
+  {
+    id: 14,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2932371,
+    lng: -97.7418843,
+    meals_delivered: 1,
+    notes: "A few homless can be seen here as well"
+  },
+  {
+    id: 15,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2935776,
+    lng: -97.7422705,
+    meals_delivered: 1,
+    notes: "A few homless can be seen here as well"
+  },
+  {
+    id: 16,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2955212,
+    lng: -97.7428514,
+    meals_delivered: 1
+  },
+  {
+    id: 17,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2954054,
+    lng: -97.7426315,
+    meals_delivered: 1
+  },
+  {
+    id: 18,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2953661,
+    lng: -97.7429372,
+    meals_delivered: 1
+  },
+  {
+    id: 19,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2955893,
+    lng: -97.7427801,
+    meals_delivered: 1,
+    notes:
+      "Any bus stop is going to be a dependable hotspot for the homless."
+  },
+  {
+    id: 20,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2947636,
+    lng: -97.742283,
+    meals_delivered: 1,
+    notes:
+      "there is always at least one or two people near this gas station"
+  },
+  {
+    id: 21,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2977597,
+    lng: -97.7411599,
+    meals_delivered: 1,
+    notes:
+      "Always some people hanging at this bus stop outside wheatsville"
+  },
+  {
+    id: 22,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2975422,
+    lng: -97.7412238,
+    meals_delivered: 1
+  },
+  {
+    id: 23,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2974154,
+    lng: -97.7410334,
+    meals_delivered: 1,
+    notes:
+      "Apart from infront or pn the benches at wheatsville, pay attention to behind the dumpsters. we always find a coupple keeping warm behind it"
+  },
+  {
+    id: 24,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2903164,
+    lng: -97.7476951,
+    meals_delivered: 1,
+    notes: "a few homless sometimes at the bench here"
+  },
+  {
+    id: 25,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2900756,
+    lng: -97.747553,
+    meals_delivered: 1,
+    notes: "often a coupple homless on the bench here"
+  },
+  {
+    id: 26,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2896841,
+    lng: -97.74762,
+    meals_delivered: 1,
+    notes: "often one or two outside the o mart"
+  },
+  {
+    id: 27,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2893758,
+    lng: -97.7479779,
+    meals_delivered: 1,
+    notes: "often a gorup of 3-4 on the benches here"
+  },
+  {
+    id: 28,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2869512,
+    lng: -97.7448126,
+    meals_delivered: 1,
+    notes: "often a few people here at this bench"
+  },
+  {
+    id: 29,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2864091,
+    lng: -97.7448984,
+    meals_delivered: 1,
+    notes: "often a few people on this curb"
+  },
+  {
+    id: 30,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2867153,
+    lng: -97.74268,
+    meals_delivered: 1,
+    notes:
+      "Always some activity out here infront of the chucrch"
+  },
+  {
+    id: 31,
+    timestamp: "2026-02-12T14:00:00Z",
+    lat: 30.2903645,
+    lng: -97.7445813,
+    meals_delivered: 1,
+    notes:
+      "frequently a homeless person or two inside the food trucks square"
+  }
 ];
 
 

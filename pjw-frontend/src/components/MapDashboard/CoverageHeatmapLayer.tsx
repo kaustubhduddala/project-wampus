@@ -26,11 +26,11 @@ export default function CoverageHeatmapLayer({ events }: CoverageHeatmapLayerPro
     // maxZoom: 10 keeps heat at full intensity when zoom >= 10 (no fade on zoom out)
     const heatLayer = (L as unknown as { heatLayer: (p: [number, number, number][], o?: object) => L.Layer })
       .heatLayer(points, {
-        radius: 50,
-        blur: 35,
+        radius: 28,
+        blur: 20,
         maxZoom: 10,
-        max: maxWeight,
-        minOpacity: 0.55,
+        max: Math.max(1,maxWeight * 1.5),
+        minOpacity: 0.25,
         gradient: {
           0.15: "#fef3c7",
           0.4: "#fb923c",

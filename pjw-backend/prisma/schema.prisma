@@ -496,6 +496,7 @@ model store_items {
   stock       BigInt
   price       Float?
   img         String?
+  product_id  String?  @default("")
 
   @@schema("public")
 }

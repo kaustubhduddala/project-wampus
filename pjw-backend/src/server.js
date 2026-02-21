@@ -28,9 +28,7 @@ app.use(express.json());
 
 
 // Example: Health Check
-app.get('/', (req, res) => {
-  res.send('Hello World');
-});
+app.get('/', (req, res) => {res.send('Hello World');});
 
 const storeItemsRouter = require('./routes/storeItemsRoutes');
 app.use('/items', storeItemsRouter);
@@ -50,6 +48,61 @@ app.use('/money-raised', moneyRaised);
 const mealsDonated = require('./routes/mealsDonatedRoutes')
 app.use('/meals-donated', mealsDonated);
 
+// testing page for checkout endpoint
+app.get('/checkout-test',(req, res) => {
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<body>
+
+    <button id="checkout-btn">Checkout Now</button>
+
+    <script>
+        const checkoutBtn = document.getElementById('checkout-btn');
+
+        checkoutBtn.addEventListener('click', async () => {
+            // Disable button to prevent double clicks
+            checkoutBtn.disabled = true;
+            checkoutBtn.innerText = 'Loading...';
+
+            const orderData = {
+                items: [
+                    { id: 2, qty: 1 }
+                ]
+            };
+
+            try {
+                // Send the POST request to your local server
+                const response = await fetch('http://localhost:3001/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    data = await response.json()
+                    window.location.assign(data.url);
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + error.message);
+                    checkoutBtn.disabled = false;
+                    checkoutBtn.innerText = 'Checkout Now';
+                }
+            } catch (err) {
+                console.error('Network Error:', err);
+                alert('Could not connect to the server. Is your backend running?');
+                checkoutBtn.disabled = false;
+                checkoutBtn.innerText = 'Checkout Now';
+            }
+        });
+    </script>
+</body>
+</html>`)
+})
+
+const checkoutRouter = require('./routes/checkoutRoutes')
+app.use('/checkout', checkoutRouter);
 
 // start server
 const PORT = process.env.PORT || 3001;

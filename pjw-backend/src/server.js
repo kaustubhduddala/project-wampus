@@ -25,6 +25,8 @@ const authRoutes = require('./routes/authRoutes');
 const ordersRoutes = require('./routes/ordersRoutes');
 const fundraisingRoutes = require('./routes/fundraisingRoutes');
 const rolesRoutes = require('./routes/rolesRoutes');
+const petitionRoutes = require('./routes/petitionRoutes');
+
 
 
 // --- Middleware ---
@@ -35,7 +37,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/admin-stats', adminStatsRouter);
-
+app.use('/api/petitions', petitionRoutes);
 
 // Example: Health Check
 app.get('/', (req, res) => {

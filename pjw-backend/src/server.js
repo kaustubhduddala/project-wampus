@@ -50,6 +50,9 @@ app.use('/money-raised', moneyRaised);
 const mealsDonated = require('./routes/mealsDonatedRoutes')
 app.use('/meals-donated', mealsDonated);
 
+const aboutRouter = require('./routes/aboutRoutes');
+app.use('/about', aboutRouter);
+
 
 // start server
 const PORT = process.env.PORT || 3001;

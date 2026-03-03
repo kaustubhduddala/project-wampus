@@ -37,7 +37,7 @@ export default function HeatmapSection() {
   const [showResources, setShowResources] = useState(false);
   const [clusterEvents, setClusterEvents] = useState(true);
   const [zoom, setZoom] = useState(12);
-// Live resources from HSO Feature Service (fallback to mock on error)
+  // Live resources from HSO Feature Service (fallback to mock on error)
   const [resources, setResources] = useState<ResourceLocation[] | null>(null);
 
   useEffect(() => {
@@ -50,6 +50,7 @@ export default function HeatmapSection() {
       });
     return () => { mounted = false; };
   }, []);
+
   const filteredEvents = useMemo(
     () => filterEventsByTime(MOCK_DELIVERY_EVENTS, timeFilter),
     [timeFilter]
@@ -91,12 +92,12 @@ export default function HeatmapSection() {
   );
 
   const impactSummary = useMemo(() => {
-    const totalMeals = filteredEvents.reduce((s, e) => s + e.meals_delivered, 0);
+    const totalDeliveries = filteredEvents.length; // each event counts as one delivery
     const deliveryStops = filteredEvents.length;
     const daysActive = new Set(
       filteredEvents.map((e) => new Date(e.timestamp).toDateString())
     ).size;
-    return { totalMeals, deliveryStops, daysActive };
+    return { totalDeliveries, deliveryStops, daysActive };
   }, [filteredEvents]);
 
   const effectiveLayer = useMemo((): LayerMode => {
@@ -114,7 +115,6 @@ export default function HeatmapSection() {
     mapRef.current?.flyToBounds(bounds, { maxZoom: ZOOM_THRESHOLD, duration: 0.5 });
   }, []);
 
-  
   const handleCellClick = useCallback(
     (bounds: L.LatLngBoundsExpression, _cellId?: string) => {
       flyToBounds(bounds);
@@ -122,7 +122,6 @@ export default function HeatmapSection() {
     },
     [flyToBounds, autoMode]
   );
-
 
   const priorityLabel = (score: number) => {
     if (score >= 0.7) return "High";
@@ -146,9 +145,9 @@ export default function HeatmapSection() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white neo-brutal-border neo-brutal-shadow-sm p-6 text-center">
           <p className="text-4xl md:text-5xl font-black text-[#b91c1c] mb-1">
-            {impactSummary.totalMeals.toLocaleString()}
+            {impactSummary.totalDeliveries.toLocaleString()}
           </p>
-          <p className="text-sm font-bold text-gray-700">Total meals delivered</p>
+          <p className="text-sm font-bold text-gray-700">Total deliveries</p>
         </div>
         <div className="bg-white neo-brutal-border neo-brutal-shadow-sm p-6 text-center">
           <p className="text-4xl md:text-5xl font-black text-[#b91c1c] mb-1">
@@ -247,7 +246,7 @@ export default function HeatmapSection() {
       <div className="grid md:grid-cols-2 gap-6 min-h-[500px]">
         {/* Map */}
         <div className="bg-white neo-brutal-border neo-brutal-shadow-sm overflow-hidden flex flex-col min-h-[400px] relative">
-          <div className="flex-1 min-h-[400px] w-full relative overflow-hidden">
+          <div className="flex-1 min-h[400px] w-full relative overflow-hidden">
             <MapContainer
               center={WEST_CAMPUS_CENTER}
               zoom={14}
@@ -333,7 +332,7 @@ export default function HeatmapSection() {
           </div>
         </div>
 
-        {/* Priority panel (replaces Delivery hotspots + Next target areas) */}
+        {/* Priority panel */}
         <div className="space-y-4">
           <div className="bg-white neo-brutal-border neo-brutal-shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
@@ -373,3 +372,4 @@ export default function HeatmapSection() {
     </div>
   );
 }
+``

@@ -15,12 +15,13 @@ export default function CoverageHeatmapLayer({ events }: CoverageHeatmapLayerPro
 
   useEffect(() => {
     if (events.length === 0) return;
+    // Weight each event equally (1) now that meals_delivered has been removed
     const points: [number, number, number][] = events.map((e) => [
       e.lat,
       e.lng,
-      e.meals_delivered,
+      1,
     ]);
-    const maxWeight = Math.max(1, ...events.map((e) => e.meals_delivered));
+    const maxWeight = 1;
 
     // leaflet.heat extends L; no built-in types
     // maxZoom: 10 keeps heat at full intensity when zoom >= 10 (no fade on zoom out)
@@ -29,7 +30,7 @@ export default function CoverageHeatmapLayer({ events }: CoverageHeatmapLayerPro
         radius: 28,
         blur: 20,
         maxZoom: 10,
-        max: Math.max(1,maxWeight * 1.5),
+        max: Math.max(1, maxWeight * 1.5),
         minOpacity: 0.25,
         gradient: {
           0.15: "#fef3c7",
@@ -49,3 +50,4 @@ export default function CoverageHeatmapLayer({ events }: CoverageHeatmapLayerPro
 
   return null;
 }
+``

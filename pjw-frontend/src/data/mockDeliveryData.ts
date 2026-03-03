@@ -10,14 +10,15 @@ import * as EL from "esri-leaflet";
 // ADD: Austin HSO layer (sublayer 2) — the URL you provided
 const ARC_LAYER_URL =
   "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/Austin_HSO_Homeless_Resources_Finder/FeatureServer/2";
+
 export interface DeliveryEvent {
   id: number;
   timestamp: string; // ISO UTC
   lat: number;
   lng: number;
-  meals_delivered: number;
   notes?: string;
 }
+
 export interface ResourceLocation {
   id: number;
   name: string;
@@ -28,18 +29,17 @@ export interface ResourceLocation {
   contact_info?: string;
 }
 
-
 /** Grid cell for coverage or priority overlay */
 export interface GridCell {
   cell_id: string;
   bounds: [[number, number], [number, number]]; // [[south, west], [north, east]]
   polygon: [number, number][]; // lat,lng ring (closed)
-  meals_sum: number;
+  meals_sum: number; // kept for compatibility; now equals visit_count
   visit_count: number;
   last_served: string | null; // ISO
   // Priority-only
   priority_score?: number;
-  served_meals_30d?: number;
+  served_meals_30d?: number; // kept for compatibility; now equals recent visits
   last_served_days?: number;
   nearest_resource?: string;
   dist_to_resource_m?: number;
@@ -59,15 +59,13 @@ const WEST_CAMPUS_BOUNDS = {
 /** H3 resolution for hexbin (10 ≈ ~66m edge, small hexes for West Campus) */
 const H3_RES = 10;
 
-/** Mock delivery events spread over last 90 days */
-
+/** Mock delivery events spread over last 90 days (each event = one delivery) */
 export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
   {
     id: 1,
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2850878,
     lng: -97.7419413,
-    meals_delivered: 1,
     notes:
       "Notes: Usually the same singular man, or collection of 3 men on a bench at this street corner."
   },
@@ -76,7 +74,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.286301,
     lng: -97.741841,
-    meals_delivered: 1,
     notes:
       "Note: Occasionally we see homeless people down this stretch of guad, but it isnt as consistent as other markers."
   },
@@ -85,7 +82,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2877866,
     lng: -97.7414015,
-    meals_delivered: 1,
     notes:
       "There is often a person or two on the steps outside the church here whom we try to feed."
   },
@@ -94,7 +90,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2876426,
     lng: -97.7418909,
-    meals_delivered: 1,
     notes:
       "Often a person or two around this corner who we are able to feed"
   },
@@ -103,7 +98,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2888374,
     lng: -97.7419425,
-    meals_delivered: 1,
     notes:
       "On Mondays, there are a large congregation of Homeless here for a weekly clothing drive that occurs at 5pm, we will be feeding them there next semester"
   },
@@ -112,7 +106,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2901841,
     lng: -97.7414667,
-    meals_delivered: 1,
     notes:
       "There is sometimes a person or two seated at the bench outside moxie who we can feed"
   },
@@ -121,7 +114,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2905661,
     lng: -97.7418717,
-    meals_delivered: 1,
     notes:
       "There are always people outside the seven eleven directly, and in the alley"
   },
@@ -130,7 +122,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2907722,
     lng: -97.7417604,
-    meals_delivered: 1,
     notes: "Here as well"
   },
   {
@@ -138,7 +129,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2910987,
     lng: -97.7414008,
-    meals_delivered: 1,
     notes:
       "This Bus stop is a very consistently populated Homeless marker"
   },
@@ -147,7 +137,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2919142,
     lng: -97.7415616,
-    meals_delivered: 1,
     notes: "Occasionally a couple people on this side of Taos"
   },
   {
@@ -155,7 +144,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2921968,
     lng: -97.7414999,
-    meals_delivered: 1,
     notes: "Consistently people here"
   },
   {
@@ -163,7 +151,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2921412,
     lng: -97.7417627,
-    meals_delivered: 1,
     notes: "Consistently people here"
   },
   {
@@ -171,7 +158,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2921075,
     lng: -97.7428622,
-    meals_delivered: 1,
     notes:
       "down this stretch of Nueces but particularly here, there are often homless people lingering here"
   },
@@ -180,7 +166,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2932371,
     lng: -97.7418843,
-    meals_delivered: 1,
     notes: "A few homless can be seen here as well"
   },
   {
@@ -188,36 +173,31 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2935776,
     lng: -97.7422705,
-    meals_delivered: 1,
     notes: "A few homless can be seen here as well"
   },
   {
     id: 16,
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2955212,
-    lng: -97.7428514,
-    meals_delivered: 1
+    lng: -97.7428514
   },
   {
     id: 17,
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2954054,
-    lng: -97.7426315,
-    meals_delivered: 1
+    lng: -97.7426315
   },
   {
     id: 18,
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2953661,
-    lng: -97.7429372,
-    meals_delivered: 1
+    lng: -97.7429372
   },
   {
     id: 19,
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2955893,
     lng: -97.7427801,
-    meals_delivered: 1,
     notes:
       "Any bus stop is going to be a dependable hotspot for the homless."
   },
@@ -226,7 +206,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2947636,
     lng: -97.742283,
-    meals_delivered: 1,
     notes:
       "there is always at least one or two people near this gas station"
   },
@@ -235,7 +214,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2977597,
     lng: -97.7411599,
-    meals_delivered: 1,
     notes:
       "Always some people hanging at this bus stop outside wheatsville"
   },
@@ -243,15 +221,13 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     id: 22,
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2975422,
-    lng: -97.7412238,
-    meals_delivered: 1
+    lng: -97.7412238
   },
   {
     id: 23,
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2974154,
     lng: -97.7410334,
-    meals_delivered: 1,
     notes:
       "Apart from infront or pn the benches at wheatsville, pay attention to behind the dumpsters. we always find a coupple keeping warm behind it"
   },
@@ -260,7 +236,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2903164,
     lng: -97.7476951,
-    meals_delivered: 1,
     notes: "a few homless sometimes at the bench here"
   },
   {
@@ -268,7 +243,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2900756,
     lng: -97.747553,
-    meals_delivered: 1,
     notes: "often a coupple homless on the bench here"
   },
   {
@@ -276,7 +250,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2896841,
     lng: -97.74762,
-    meals_delivered: 1,
     notes: "often one or two outside the o mart"
   },
   {
@@ -284,7 +257,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2893758,
     lng: -97.7479779,
-    meals_delivered: 1,
     notes: "often a gorup of 3-4 on the benches here"
   },
   {
@@ -292,7 +264,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2869512,
     lng: -97.7448126,
-    meals_delivered: 1,
     notes: "often a few people here at this bench"
   },
   {
@@ -300,7 +271,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2864091,
     lng: -97.7448984,
-    meals_delivered: 1,
     notes: "often a few people on this curb"
   },
   {
@@ -308,7 +278,6 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2867153,
     lng: -97.74268,
-    meals_delivered: 1,
     notes:
       "Always some activity out here infront of the chucrch"
   },
@@ -317,12 +286,10 @@ export const MOCK_DELIVERY_EVENTS: DeliveryEvent[] = [
     timestamp: "2026-02-12T14:00:00Z",
     lat: 30.2903645,
     lng: -97.7445813,
-    meals_delivered: 1,
     notes:
       "frequently a homeless person or two inside the food trucks square"
   }
 ];
-
 
 /** Mock resource locations (shelters, pantries) */
 export const MOCK_RESOURCES: ResourceLocation[] = [
@@ -335,14 +302,12 @@ export const MOCK_RESOURCES: ResourceLocation[] = [
   { id: 7,  name: "Micah 6 Street Youth Drop-in Center",            type: "outreach",     lat: 30.2846230149468, lng: -97.7425619867976 },
   { id: 8,  name: "Austin Recreation Center",                       type: "outreach",   lat: 30.27865099309,   lng: -97.7495059729295 },
 
-
   { id: 11, name: "Dittmar Recreational Center",                    type: "outreach",   lat: 30.184832727962,  lng: -97.8017568299741 },
   { id: 13, name: "Dove Springs Recreation Center",                 type: "outreach",   lat: 30.187434080979,  lng: -97.7382141104972 },
   { id: 15, name: "Gus Garcia Recreational Center",                 type: "outreach",   lat: 30.3538268152769, lng: -97.6816589926192 },
   { id: 20, name: "Northwest Recreational Center",                  type: "outreach",   lat: 30.333721982162,  lng: -97.7518890318026 },
   { id: 24, name: "Turner-Roberts Recreation Center",               type: "outreach",   lat: 30.3003988883405, lng: -97.6360368813062 },
   { id: 27, name: "St. Andrew’s-Meal and Shower",                   type: "outreach",   lat: 30.4368576550592, lng: -97.6749119800797 },
-
 
   { id: 28, name: "Parque Zaragoza Recreation Center",              type: "outreach",     lat: 30.2616878998895, lng: -97.7115189001394 },
   { id: 29, name: "Pan Am Recreation Center",                       type: "outreach",     lat: 30.2581310040614, lng: -97.7207869746376 },
@@ -386,14 +351,12 @@ export const MOCK_RESOURCES: ResourceLocation[] = [
   { id: 72, name: "Windsor Park Branch, Austin Public Library",     type: "outreach",     lat: 30.3115264995687, lng: -97.6903153006308 },
   { id: 73, name: "Yarborough Branch, Austin Public Library",       type: "outreach",     lat: 30.3234702003055, lng: -97.7407240993059 },
 
-
   { id: 76, name: "Psychiatric Emergency Services (PES)",           type: "outreach",      lat: 30.2747560060977, lng: -97.6980069734661 },
   { id: 77, name: "Integral Care St. John Clinic",                  type: "outreach",      lat: 30.3310639971574, lng: -97.7039860364556 },
   { id: 78, name: "Integral Care Dove Springs Clinic",              type: "outreach",      lat: 30.2047790168834, lng: -97.7578100086016 },
   { id: 79, name: "Integral Care East 2nd Street Clinic",           type: "outreach",      lat: 30.2586909990124, lng: -97.7273629967746 },
   { id: 80, name: "Integral Care Stonegate Clinic",                 type: "outreach",      lat: 30.2053170235571, lng: -97.8126605531256 },
   { id: 81, name: "Integral Care Oak Springs Clinic",               type: "outreach",      lat: 30.2736080206364, lng: -97.7006269887585 },
-
 
   { id: 82, name: "ARCH CommUnityCare Clinic",                      type: "outreach",  lat: 30.2679480147884, lng: -97.7376220271655 },
   { id: 83, name: "Black Men's Health Clinic",                      type: "outreach",  lat: 30.3203829798504, lng: -97.6928889833846 },
@@ -413,7 +376,6 @@ export const MOCK_RESOURCES: ResourceLocation[] = [
   { id: 98, name: "Southeast Walk-in Clinic",                       type: "outreach",  lat: 30.2143550059844, lng: -97.7096879937295 },
   { id: 99, name: "William Cannon Health Center",                   type: "outreach",  lat: 30.1876949799213, lng: -97.7708509926575 },
 
-
   { id: 100, name: "Angel House Soup Kitchen",                      type: "pantry",               lat: 30.2608026726214, lng: -97.734849071138 },
   { id: 101, name: "Caritas of Austin - Lunch",                     type: "pantry",               lat: 30.267421370875,  lng: -97.737898376529 },
   { id: 102, name: "Trinity Center Meals",                          type: "pantry",               lat: 30.2682002711674, lng: -97.7392164858078 },
@@ -429,7 +391,6 @@ export const MOCK_RESOURCES: ResourceLocation[] = [
   { id: 112, name: "Sunrise Community Church Pantry", type: "pantry", lat: 30.2821, lng: -97.7321 },
   { id: 113, name: "Caritas of Austin", type: "shelter", lat: 30.2713, lng: -97.7432 },
 ];
-
 
 export type TimeFilterKey = "7" | "30" | "90" | "all";
 
@@ -504,7 +465,7 @@ function polygonBounds(polygon: [number, number][]): [[number, number], [number,
 export function buildCoverageGrid(events: DeliveryEvent[]): GridCell[] {
   const byCell = new Map<
     string,
-    { meals: number; visits: number; lastDate: Date | null }
+    { visits: number; lastDate: Date | null }
   >();
 
   for (const e of events) {
@@ -513,15 +474,14 @@ export function buildCoverageGrid(events: DeliveryEvent[]): GridCell[] {
       e.lat > WEST_CAMPUS_BOUNDS.north ||
       e.lng < WEST_CAMPUS_BOUNDS.west ||
       e.lng > WEST_CAMPUS_BOUNDS.east
-    )
-      continue;
+    ) continue;
+
     const key = getCellKey(e.lat, e.lng);
     const date = new Date(e.timestamp);
     const existing = byCell.get(key);
     if (!existing) {
-      byCell.set(key, { meals: e.meals_delivered, visits: 1, lastDate: date });
+      byCell.set(key, { visits: 1, lastDate: date });
     } else {
-      existing.meals += e.meals_delivered;
       existing.visits += 1;
       if (date > existing.lastDate!) existing.lastDate = date;
     }
@@ -535,12 +495,13 @@ export function buildCoverageGrid(events: DeliveryEvent[]): GridCell[] {
     const polygon: [number, number][] = [...boundary.map(([lat, lng]) => [lat, lng] as [number, number]), boundary[0]];
     const bounds = polygonBounds(polygon);
     const data = byCell.get(cellId);
+    const visits = data?.visits ?? 0;
     return {
       cell_id: cellId,
       bounds,
       polygon,
-      meals_sum: data?.meals ?? 0,
-      visit_count: data?.visits ?? 0,
+      meals_sum: visits,     // backward compatible: now equal to visit count
+      visit_count: visits,
       last_served: data?.lastDate ? data.lastDate.toISOString() : null,
     };
   });
@@ -602,6 +563,7 @@ function multiResourceInfluence(
     nearest: nearest.map((n) => ({ name: n.name, dist: n.dist })),
   };
 }
+
 /** Add priority score and reason to each cell; optionally use resources */
 export function addPriorityToCells(
   cells: GridCell[],
@@ -610,19 +572,19 @@ export function addPriorityToCells(
 ): GridCell[] {
   const now = new Date();
 
-  // Aggregate recent activity by cell (last 30d)
-  const mealsByCell = new Map<string, number>();
+  // Aggregate recent activity by cell (last 30d) — count-based
+  const visitsByCell = new Map<string, number>();
   const lastServedByCell = new Map<string, Date>();
   for (const e of eventsLast30) {
     const key = getCellKey(e.lat, e.lng);
-    mealsByCell.set(key, (mealsByCell.get(key) ?? 0) + e.meals_delivered);
+    visitsByCell.set(key, (visitsByCell.get(key) ?? 0) + 1);
     const d = new Date(e.timestamp);
     const existing = lastServedByCell.get(key);
     if (!existing || d > existing) lastServedByCell.set(key, d);
   }
 
   return cells.map((cell) => {
-    const served30 = mealsByCell.get(cell.cell_id) ?? 0;
+    const served30 = visitsByCell.get(cell.cell_id) ?? 0;
     const lastServed = lastServedByCell.get(cell.cell_id);
     const lastServedDays = lastServed
       ? Math.floor((now.getTime() - lastServed.getTime()) / (24 * 60 * 60 * 1000))
@@ -636,13 +598,13 @@ export function addPriorityToCells(
     const resourcePenalty = -density; // ∈ [-1, 0]
 
     // ---- MAIN SCORE ----
-    const needProxy = 1 / (1 + served30);                // high when few meals
+    const needProxy = 1 / (1 + served30);                // high when few recent deliveries
     const recencyGap = Math.min(1, lastServedDays / 14); // high when not served recently
     const priority_score = W1 * needProxy + W2 * recencyGap + W3 * resourcePenalty;
 
     // ---- Explainability fields ----
     const reason: string[] = [];
-    if (served30 <= 5) reason.push("Low meals delivered recently");
+    if (served30 <= 5) reason.push("Low deliveries recently");
     if (lastServedDays >= 7) reason.push(`Not served in ${lastServedDays} days`);
     if (nearest.length) {
       const list = nearest.slice(0, 3)
@@ -654,7 +616,7 @@ export function addPriorityToCells(
     return {
       ...cell,
       priority_score,
-      served_meals_30d: served30,
+      served_meals_30d: served30, // kept for compatibility (represents recent deliveries)
       last_served_days: lastServedDays === 999 ? undefined : lastServedDays,
       nearest_resource: nearest[0]?.name,
       dist_to_resource_m: nearest[0] ? Math.round(nearest[0].dist) : undefined,
@@ -742,6 +704,7 @@ export function priorityColor(score: number): string {
   const b = Math.round(44);
   return `rgb(${r},${g},${b})`;
 }
+
 /** Fetch Austin HSO resources from ArcGIS and convert to ResourceLocation[] */
 export async function fetchHSOResources(): Promise<ResourceLocation[]> {
   // Build a FeatureLayer client (Esri‑Leaflet)

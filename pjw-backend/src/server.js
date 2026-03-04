@@ -50,6 +50,9 @@ app.use('/money-raised', moneyRaised);
 const mealsDonated = require('./routes/mealsDonatedRoutes')
 app.use('/meals-donated', mealsDonated);
 
+const teamPhotoRouter = require('./routes/teamPhotoRoutes');
+app.use('/team-photo', teamPhotoRouter);
+
 
 // start server
 const PORT = process.env.PORT || 3001;

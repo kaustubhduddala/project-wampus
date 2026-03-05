@@ -419,7 +419,6 @@ model users {
 model deliveries {
   volunteer_name  String
   created_at      DateTime @default(now()) @db.Timestamptz(6)
-  meals_delivered BigInt?  @default(0)
   address         String?
   notes           String?
   user_id         String   @default(dbgenerated("auth.uid()")) @db.Uuid

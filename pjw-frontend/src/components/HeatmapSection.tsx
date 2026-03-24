@@ -219,7 +219,7 @@ export default function HeatmapSection() {
           <Building2 className="w-4 h-4 mr-1" />
           Resources {showResources ? "ON" : "OFF"}
         </Button>
-        {layerMode === "coverage" ? (
+        {/* {layerMode === "coverage" ? (
           <label className="flex items-center gap-2 font-bold cursor-pointer text-sm">
             <input
               type="checkbox"
@@ -229,7 +229,7 @@ export default function HeatmapSection() {
             />
             Auto (Coverage when zoomed out, Events when zoomed in)
           </label>
-        ) : null}
+        ) : null} */}
         {layerMode === "events" ? (
           <label className="flex items-center gap-2 font-bold cursor-pointer text-sm">
             <input

@@ -77,7 +77,7 @@ export default function HeatmapSection() {
   );
 
   const topPriority = useMemo(
-    () => getTopPriorityCells(cellsWithPriority, 8),
+    () => getTopPriorityCells(cellsWithPriority, 3),
     [cellsWithPriority]
   );
 
@@ -87,7 +87,7 @@ export default function HeatmapSection() {
   );
 
   const topFiveForMarkers = useMemo(
-    () => getTopPriorityCells(cellsWithPriority, 5),
+    () => getTopPriorityCells(cellsWithPriority, 3),
     [cellsWithPriority]
   );
 

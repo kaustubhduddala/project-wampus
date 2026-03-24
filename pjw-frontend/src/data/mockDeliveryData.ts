@@ -602,16 +602,16 @@ export function addPriorityToCells(
     const recencyGap = Math.min(1, lastServedDays / 14); // high when not served recently
     const priority_score = W1 * needProxy + W2 * recencyGap + W3 * resourcePenalty;
 
-    // ---- Explainability fields ----
-    const reason: string[] = [];
-    if (served30 <= 5) reason.push("Low deliveries recently");
-    if (lastServedDays >= 7) reason.push(`Not served in ${lastServedDays} days`);
-    if (nearest.length) {
-      const list = nearest.slice(0, 3)
-        .map((n) => `${n.name} (${Math.round(n.dist)}m)`)
-        .join(", ");
-      reason.push(`Nearby resources: ${list}`);
-    }
+    // // ---- Explainability fields ----
+    // const reason: string[] = [];
+    // if (served30 <= 5) reason.push("Low deliveries recently");
+    // if (lastServedDays >= 7) reason.push(`Not served in ${lastServedDays} days`);
+    // if (nearest.length) {
+    //   const list = nearest.slice(0, 3)
+    //     .map((n) => `${n.name} (${Math.round(n.dist)}m)`)
+    //     .join(",\n");
+    //   reason.push(`Nearby resources: ${list}`);
+    // }
 
     return {
       ...cell,
@@ -620,7 +620,7 @@ export function addPriorityToCells(
       last_served_days: lastServedDays === 999 ? undefined : lastServedDays,
       nearest_resource: nearest[0]?.name,
       dist_to_resource_m: nearest[0] ? Math.round(nearest[0].dist) : undefined,
-      reason: reason.length ? reason : undefined,
+      // reason: reason.length ? reason : undefined,
     };
   });
 }

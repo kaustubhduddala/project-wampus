@@ -166,7 +166,7 @@ export default function Home() {
       </section>
 
       {/* Heatmap Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section id="heatmap" className="container mx-auto px-4 py-16 scroll-mt-20">
         <HeatmapSection />
       </section>
 

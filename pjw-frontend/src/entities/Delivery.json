@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Name of volunteer who made delivery"
     },
+    "meals_delivered": {
+      "type": "number",
+      "description": "Number of meals delivered"
+    },
     "latitude": {
       "type": "number",
       "description": "Delivery location latitude"
@@ -38,6 +42,7 @@
   },
   "required": [
     "volunteer_name",
+    "meals_delivered",
     "latitude",
     "longitude"
   ]

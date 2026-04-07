@@ -7,7 +7,6 @@ BigInt.prototype.toJSON = function() {
 
 const express = require('express');
 const cors = require('cors');
-// initialize prisma
 const prisma = require('./db/db');
 
 // --- 2. VERIFY ENV & DB CONNECTION ---
@@ -20,11 +19,22 @@ if (!process.env.DATABASE_URL) {
 
 const app = express();
 
+// ROUTES
+const adminStatsRouter = require('./routes/adminStatsRoutes');
+const authRoutes = require('./routes/authRoutes');    
+const ordersRoutes = require('./routes/ordersRoutes');
+const fundraisingRoutes = require('./routes/fundraisingRoutes');
+const rolesRoutes = require('./routes/rolesRoutes');
+
+
 // --- Middleware ---
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' })); // Allow all for dev, restrict in prod
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*' })); 
 app.use(express.json());
 
-// --- ROUTES ---
+// --- MOUNT ROUTES ---
+app.use('/api/auth', authRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/admin-stats', adminStatsRouter);
 
 
 // Example: Health Check
@@ -103,6 +113,14 @@ app.get('/checkout-test',(req, res) => {
 
 const checkoutRouter = require('./routes/checkoutRoutes')
 app.use('/checkout', checkoutRouter);
+const heatmapRouter = require('./routes/heatmapRoutes');
+app.use('/heatmap', heatmapRouter);
+
+const rolesRouter = require('./routes/rolesRoutes');
+app.use('/roles', rolesRouter);
+
+const fundraisingRouter = require('./routes/fundraisingRoutes');
+app.use('/fundraising', fundraisingRouter);
 
 // start server
 const PORT = process.env.PORT || 3001;

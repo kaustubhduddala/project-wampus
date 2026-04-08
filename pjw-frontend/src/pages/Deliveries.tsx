@@ -13,6 +13,7 @@ export default function Deliveries() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     volunteer_name: "",
+    meals_delivered: "",
     latitude: "",
     longitude: "",
     address: "",
@@ -92,6 +93,7 @@ export default function Deliveries() {
       "id": "something",
       "created_date": "01/10/2026",
       "volunteer_name": "Bob",
+      "meals_delivered": 10,
       "latitude": 21.34134,
       "longitude": 21.34123,
       "address": "564 Oak Street",
@@ -118,11 +120,11 @@ export default function Deliveries() {
       {/* Stats Bar */}
       <section className="bg-black text-white py-8 neo-brutal-border border-b-4">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 gap-6 text-center">
-            {/* <div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
               <p className="text-4xl font-black text-[#22C55E]">{totalMeals}</p>
               <p className="text-sm font-bold">TOTAL MEALS</p>
-            </div> */}
+            </div>
             <div>
               <p className="text-4xl font-black text-[#22C55E]">{deliveries.length}</p>
               <p className="text-sm font-bold">DELIVERIES</p>
@@ -133,12 +135,12 @@ export default function Deliveries() {
               </p>
               <p className="text-sm font-bold">VOLUNTEERS</p>
             </div>
-            {/* <div>
+            <div>
               <p className="text-4xl font-black text-[#22C55E]">
                 {deliveries.length > 0 ? (totalMeals / deliveries.length).toFixed(1) : 0}
               </p>
               <p className="text-sm font-bold">AVG MEALS/DELIVERY</p>
-            </div> */}
+            </div>
           </div>
         </div>
       </section>
@@ -177,7 +179,7 @@ export default function Deliveries() {
                       placeholder="Your name"
                     />
                   </div>
-                  {/* <div>
+                  <div>
                     <label className="block font-black mb-2">MEALS DELIVERED*</label>
                     <Input
                       required
@@ -188,7 +190,7 @@ export default function Deliveries() {
                       className="neo-brutal-border-thin font-bold"
                       placeholder="Number of meals"
                     />
-                  </div> */}
+                  </div>
                 </div>
 
                 <div>
@@ -296,12 +298,12 @@ export default function Deliveries() {
                 <CardHeader className="bg-[#F5F5F5] neo-brutal-border-thin border-b">
                   <div className="flex items-center justify-between">
                     <CardTitle className="font-black text-lg">{delivery.volunteer_name}</CardTitle>
-                    {/* <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <div className="w-10 h-10 bg-[#22C55E] neo-brutal-border-thin flex items-center justify-center">
                         <span className="font-black text-white">{delivery.meals_delivered}</span>
                       </div>
                       <span className="text-sm font-bold">meals</span>
-                    </div> */}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">

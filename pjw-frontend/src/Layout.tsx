@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/Chatbot";
 import { useAuth } from "@/context/AuthContext";
 
-const baseNavigationItems = [
+const navigationItems = [
   { title: "Home", url: "/home", icon: Home },
   { title: "About", url: "/about", icon: Info },
   { title: "Shop", url: "/shop", icon: ShoppingBag },
   { title: "Deliveries", url: "/deliveries", icon: MapPin },
   { title: "Sponsors", url: "/sponsors", icon: Award },
+  { title: "Admin", url: "/admin", icon: Settings },
 ];
 
 export default function Layout({ children }) {
@@ -18,10 +19,6 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const { user, role, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-
-  const navigationItems = role === "ADMIN"
-    ? [...baseNavigationItems, { title: "Admin", url: "/admin", icon: Settings }]
-    : baseNavigationItems;
 
   const handleLogin = () => {
     navigate("/signin");

@@ -1,26 +1,36 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-// import { createPageUrl } from "@/utils";
-// import { base44 } from "@/api/base44Client";
-import { Home, Info, ShoppingBag, MapPin, Award, Menu, X, LogIn, Settings } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Home, Info, ShoppingBag, MapPin, Award, Menu, X, LogIn, LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/Chatbot";
+import { useAuth } from "@/context/AuthContext";
 
-const navigationItems = [
+const baseNavigationItems = [
   { title: "Home", url: "/home", icon: Home },
   { title: "About", url: "/about", icon: Info },
   { title: "Shop", url: "/shop", icon: ShoppingBag },
   { title: "Deliveries", url: "/deliveries", icon: MapPin },
   { title: "Sponsors", url: "/sponsors", icon: Award },
-  { title: "Admin", url: "/admin", icon: Settings }
 ];
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, role, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
+  const navigationItems = role === "ADMIN"
+    ? [...baseNavigationItems, { title: "Admin", url: "/admin", icon: Settings }]
+    : baseNavigationItems;
+
   const handleLogin = () => {
-    // base44.auth.redirectToLogin();
+    navigate("/signin");
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/home");
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -61,15 +71,32 @@ export default function Layout({ children }) {
                   </Link>
                 );
               })}
-              <Button 
-                onClick={handleLogin}
-                size="sm"
-                className="neo-button bg-transparent! text-white hover:bg-white hover:text-black font-bold ml-1"
-              >
-                <LogIn className="w-4 h-4 mr-1" />
-                Login
-              </Button>
-              <Button 
+              {user ? (
+                <>
+                  <span className="flex items-center gap-1 text-white text-sm font-bold ml-1">
+                    <User className="w-4 h-4" />
+                    {user.email.split("@")[0]}
+                  </span>
+                  <Button
+                    onClick={handleLogout}
+                    size="sm"
+                    className="neo-button bg-transparent! text-white hover:bg-white hover:text-black font-bold ml-1"
+                  >
+                    <LogOut className="w-4 h-4 mr-1" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={handleLogin}
+                  size="sm"
+                  className="neo-button bg-transparent! text-white hover:bg-white hover:text-black font-bold ml-1"
+                >
+                  <LogIn className="w-4 h-4 mr-1" />
+                  Login
+                </Button>
+              )}
+              <Button
                 size="sm"
                 className="neo-button bg-black! text-white hover:bg-gray-900 font-bold ml-1"
               >
@@ -111,13 +138,29 @@ export default function Layout({ children }) {
                   </Link>
                 );
               })}
-              <Button 
-                onClick={handleLogin}
-                className="neo-button bg-transparent! text-white border-white font-bold w-full hover:bg-black!"
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Login
-              </Button>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 px-2 py-1 text-white text-sm font-bold">
+                    <User className="w-4 h-4" />
+                    {user.email}
+                  </div>
+                  <Button
+                    onClick={handleLogout}
+                    className="neo-button bg-transparent! text-white border-white font-bold w-full hover:bg-black!"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={handleLogin}
+                  className="neo-button bg-transparent! text-white border-white font-bold w-full hover:bg-black!"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </Button>
+              )}
               <Button className="neo-button bg-black! text-white font-bold w-full">
                 DONATE NOW
               </Button>

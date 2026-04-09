@@ -5,6 +5,7 @@ import About from './pages/About';
 import Shop from './pages/Shop';
 import Deliveries from './pages/Deliveries';
 import Sponsors from './pages/Sponsors';
+import Admin from './pages/Admin';
 // import './index.css'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/deliveries" element={<Deliveries />} />
           <Route path="/sponsors" element={<Sponsors />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </Layout>
     </Router>

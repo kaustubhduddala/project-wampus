@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 // import { createPageUrl } from "@/utils";
 // import { base44 } from "@/api/base44Client";
-import { Home, Info, ShoppingBag, MapPin, Award, Menu, X, LogIn } from "lucide-react";
+import { Home, Info, ShoppingBag, MapPin, Award, Menu, X, LogIn, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/Chatbot";
 
@@ -11,7 +11,8 @@ const navigationItems = [
   { title: "About", url: "/about", icon: Info },
   { title: "Shop", url: "/shop", icon: ShoppingBag },
   { title: "Deliveries", url: "/deliveries", icon: MapPin },
-  { title: "Sponsors", url: "/sponsors", icon: Award }
+  { title: "Sponsors", url: "/sponsors", icon: Award },
+  { title: "Admin", url: "/admin", icon: Settings }
 ];
 
 export default function Layout({ children }) {

@@ -34,7 +34,7 @@ export default function EventLayer({ events, cluster = true }: EventLayerProps) 
       icon={deliveryIcon}
     >
       <Popup>
-        <div className="font-black text-sm">Delivery #{event.id}</div>
+        {/* <div className="font-black text-sm">Delivery #{event.id}</div> */}
         {/* <div className="text-[#22C55E] font-black">{event.meals_delivered} meals</div> */}
         <div className="text-xs font-bold">
           {format(new Date(event.timestamp), "MMM d, yyyy 'at' h:mm a")}

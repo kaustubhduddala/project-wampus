@@ -2,33 +2,48 @@ import React, { useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { askChatbot, type ChatMessage } from "@/api/chatClient";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: "bot", text: "Hi! I'm the Project Wampus assistant. Ask me anything about our organization, mission, or how to get involved!" }
-  ]);
-  const [input, setInput] = useState("");
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    const trimmedInput = inputValue.trim();
+    if (!trimmedInput || isLoading) {
+      return;
+    }
 
-    setMessages(prev => [...prev, { role: "user", text: input }]);
-    
-    // Placeholder bot response
-    setTimeout(() => {
-      const responses = [
-        "That's a great question! Our team is working on providing detailed information about this.",
-        "Project Wampus operates throughout Austin, focusing on areas with the highest need.",
-        "You can get involved by volunteering, donating, or spreading awareness!",
-        "We've distributed over 50,000 meals to people experiencing homelessness in Austin.",
-        "Our advocacy efforts focus on supporting legislation that helps end homelessness."
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      setMessages(prev => [...prev, { role: "bot", text: randomResponse }]);
-    }, 1000);
+    const userMessage: ChatMessage = { role: "user", content: trimmedInput };
+    const updatedHistory = [...chatHistory, userMessage];
+    setChatHistory(updatedHistory);
+    setInputValue("");
+    setChatError(null);
+    setIsLoading(true);
 
-    setInput("");
+    try {
+      const { answer } = await askChatbot(trimmedInput, chatHistory);
+      const assistantMessage: ChatMessage = { role: "assistant", content: answer };
+      setChatHistory((prev) => [...prev, assistantMessage]);
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : "Something went wrong. Please try again.";
+      setChatError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void handleSend();
+    }
   };
 
   return (
@@ -58,7 +73,19 @@ export default function Chatbot() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.map((msg, idx) => (
+            {chatHistory.length === 0 && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] p-3 neo-brutal-border-thin bg-[#22C55E] text-white">
+                  <p className="text-[10px] font-black uppercase opacity-80 mb-1">Assistant</p>
+                  <p className="text-sm font-bold">
+                    Hi! I'm the Project Wampus assistant. Ask me anything about our organization,
+                    mission, or how to get involved!
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {chatHistory.map((msg, idx) => (
               <div
                 key={idx}
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -70,25 +97,47 @@ export default function Chatbot() {
                       : "bg-[#22C55E] text-white"
                   }`}
                 >
-                  <p className="text-sm font-bold">{msg.text}</p>
+                  <p className="text-[10px] font-black uppercase opacity-80 mb-1">
+                    {msg.role === "user" ? "You" : "Assistant"}
+                  </p>
+                  <p className="text-sm font-bold">{msg.content}</p>
                 </div>
               </div>
             ))}
+
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] p-3 neo-brutal-border-thin bg-[#22C55E] text-white">
+                  <p className="text-[10px] font-black uppercase opacity-80 mb-1">Assistant</p>
+                  <p className="text-sm font-bold">...</p>
+                </div>
+              </div>
+            )}
+
+            {chatError && (
+              <div className="text-xs font-bold text-red-600 bg-red-50 neo-brutal-border-thin p-2">
+                {chatError}
+              </div>
+            )}
           </div>
 
           {/* Input */}
           <div className="p-4 neo-brutal-border-thin border-t">
             <div className="flex gap-2">
               <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Ask me anything..."
                 className="neo-brutal-border-thin font-bold"
+                disabled={isLoading}
               />
               <Button
-                onClick={handleSend}
+                onClick={() => {
+                  void handleSend();
+                }}
                 className="neo-button bg-[#22C55E] text-white"
+                disabled={isLoading}
               >
                 <Send className="w-4 h-4" />
               </Button>

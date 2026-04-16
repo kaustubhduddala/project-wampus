@@ -89,3 +89,38 @@ CORS_ORIGIN=http://localhost:5173
 ### Frontend (`pjw-frontend/.env`)
 
 No environment variables are currently required to run the frontend locally.
+---
+
+## Chatbot (RAG) — Overview
+
+- **Location:** Backend chatbot code and ingestion script live in pjw-backend/; the frontend widget is at pjw-frontend/src/components/Chatbot.tsx.
+- **What it does:** A Retrieval-Augmented Generation (RAG) chat endpoint mounted at `POST /api/chat`. It uses OpenAI embeddings + chat completions and Pinecone for vector search to ground answers and return source references.
+- **Knowledge base:** System prompt is at pjw-backend/config/system_message.txt. Document sources are under pjw-backend/data/*.txt.
+
+### Backend — Chatbot Setup
+
+1. Add provider keys to pjw-backend/.env:
+	- `OPENAI_API_KEY` — OpenAI API key.
+	- `PINECONE_API_KEY` — Pinecone API key.
+	- `PINECONE_INDEX_NAME` — Pinecone index name (PRD uses `projectwampus`).
+2. Create a Pinecone index (manual step) with:
+	- name: `projectwampus`
+	- dimension: `1536`
+	- metric: `cosine`
+3. Run the ingestion script to index local docs:
+
+```bash
+cd pjw-backend
+node scripts/ingest.js
+```
+
+This script chunks pjw-backend/data/*.txt, creates embeddings, and upserts vectors into Pinecone.
+
+- The chat widget is at pjw-frontend/src/components/Chatbot.tsx and sends `{ question, history }` to `POST /api/chat`.
+
+### Notes & Troubleshooting
+
+- The backend reads pjw-backend/config/system_message.txt on each request — edit it to change assistant persona or policies.
+- If the chatbot returns `500`, verify `OPENAI_API_KEY`, `PINECONE_API_KEY`, and that the Pinecone index exists.
+- Rate limiting: the chat API enforces 20 requests per 60 seconds per client.
+

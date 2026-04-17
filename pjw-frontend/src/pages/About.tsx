@@ -1,15 +1,44 @@
-// import React from "react";
-// import { base44 } from "@/api/base44Client";
-// import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Heart, Users, Target, Award, Calendar, TrendingUp, Megaphone, AlertCircle, CheckCircle, Clock, FileText, ExternalLink } from "lucide-react";
 import { Badge } from "../components/ui/badge";
+import { getAdvocacyUpdates, type AdvocacyUpdate } from "@/api/publicApi";
+import { EXTERNAL_LINKS, openExternalUrl } from "@/config/externalLinks";
 
 export default function About() {
-  // const { data: updates = [] } = useQuery({
-  //   queryKey: ["advocacy"],
-  //   queryFn: () => base44.entities.AdvocacyUpdate.list("-created_date"),
-  //   initialData: [],
-  // });
+  const [updates, setUpdates] = useState<AdvocacyUpdate[]>([]);
+  const [loadingUpdates, setLoadingUpdates] = useState(true);
+  const [updatesError, setUpdatesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadUpdates = async () => {
+      setLoadingUpdates(true);
+      setUpdatesError(null);
+
+      try {
+        const payload = await getAdvocacyUpdates();
+        if (mounted) {
+          setUpdates(payload);
+        }
+      } catch (error) {
+        if (mounted) {
+          setUpdates([]);
+          setUpdatesError(error instanceof Error ? error.message : "Failed to load legislative updates");
+        }
+      } finally {
+        if (mounted) {
+          setLoadingUpdates(false);
+        }
+      }
+    };
+
+    loadUpdates();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const milestones = [
     { year: "2021", event: "Project Wampus Founded", description: "Started with 5 students and a vision" },
@@ -25,7 +54,7 @@ export default function About() {
     { icon: Award, title: "EXCELLENCE", description: "High standards in everything we do" },
   ];
 
-  const getImpactColor = (impact: string) => {
+  const getImpactColor = (impact: string | null) => {
     switch (impact) {
       case "positive": return "bg-[#22C55E] text-white";
       case "negative": return "bg-red-500 text-white";
@@ -33,7 +62,7 @@ export default function About() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | null) => {
     switch (status) {
       case "passed":
       case "signed":
@@ -45,19 +74,13 @@ export default function About() {
     }
   };
 
-  const updates = [
-    {
-      "id": "billId",
-      "title": "New Update",
-    "content": "A very cool bill is introduced",
-    "bill_number": 100223,
-    "status": "proposed",
-    "impact": "positive",
-    "action_taken": "posted on social media public support for it",
-    "link_url": "https://google.com",
-    "priority": "medium"
-    }
-  ]
+  const handlePetitionClick = () => {
+    openExternalUrl(EXTERNAL_LINKS.PETITION_URL, "Petition");
+  };
+
+  const handleContactRepClick = () => {
+    openExternalUrl(EXTERNAL_LINKS.CONTACT_REP_URL, "Contact representative");
+  };
 
   return (
     <div>
@@ -250,6 +273,17 @@ export default function About() {
 
         {/* Legislative Updates */}
         <h3 className="text-4xl font-black mb-8">LEGISLATIVE UPDATES</h3>
+
+        {loadingUpdates && (
+          <div className="bg-white neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold">Loading legislative updates...</p>
+          </div>
+        )}
+        {updatesError && (
+          <div className="bg-yellow-100 neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold text-yellow-800">Could not load updates: {updatesError}</p>
+          </div>
+        )}
         
         {updates.length === 0 ? (
           <div className="bg-[#F5F5F5] neo-brutal-border neo-brutal-shadow p-12 text-center">
@@ -325,10 +359,10 @@ export default function About() {
             Your voice matters. Join us in advocating for policies that support homeless communities.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <button className="neo-button bg-[#22C55E] text-white px-8 py-4 font-black">
+            <button type="button" onClick={handlePetitionClick} className="neo-button bg-[#22C55E] text-white px-8 py-4 font-black">
               SIGN OUR PETITION
             </button>
-            <button className="neo-button bg-white text-black px-8 py-4 font-black">
+            <button type="button" onClick={handleContactRepClick} className="neo-button bg-white text-black px-8 py-4 font-black">
               CONTACT YOUR REP
             </button>
           </div>

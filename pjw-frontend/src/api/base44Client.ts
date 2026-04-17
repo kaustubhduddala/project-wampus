@@ -1,76 +1,117 @@
-// Base44 Client - placeholder for API integration
-// This is a mock implementation. Replace with actual Base44 client when available.
+import {
+  createDelivery,
+  getAdvocacyUpdates,
+  getDeliveries,
+  getSponsors,
+  getStoreItems,
+  getVolunteerSummary,
+} from "./publicApi";
 
-interface Entity {
+interface BaseEntity {
   id: string;
-  [key: string]: any;
 }
 
-class EntityClient<T extends Entity> {
-  private entityName: string;
+class EntityClient<T extends BaseEntity> {
+  private readonly listFn?: () => Promise<T[]>;
+  private readonly createFn?: (data: Partial<T>) => Promise<T>;
 
-  constructor(entityName: string) {
-    this.entityName = entityName;
+  constructor(options: { list?: () => Promise<T[]>; create?: (data: Partial<T>) => Promise<T> }) {
+    this.listFn = options.list;
+    this.createFn = options.create;
   }
 
-  async list(_sortBy?: string): Promise<T[]> {
-    // Mock implementation - returns empty array
-    // In production, this would call the actual API
-    return [];
+  async list(sortBy?: string): Promise<T[]> {
+    void sortBy;
+    if (!this.listFn) {
+      throw new Error("List operation is not available for this entity.");
+    }
+    return this.listFn();
   }
 
-  async get(_id: string): Promise<T | null> {
-    // Mock implementation
-    return null;
+  async get(id: string): Promise<T | null> {
+    void id;
+    throw new Error("Get operation is not supported in this compatibility client.");
   }
 
   async create(data: Partial<T>): Promise<T> {
-    // Mock implementation
-    return { id: crypto.randomUUID(), ...data } as T;
+    if (!this.createFn) {
+      throw new Error("Create operation is not available for this entity.");
+    }
+    return this.createFn(data);
   }
 
   async update(id: string, data: Partial<T>): Promise<T> {
-    // Mock implementation
-    return { id, ...data } as T;
+    void id;
+    void data;
+    throw new Error("Update operation is not supported in this compatibility client.");
   }
 
-  async delete(_id: string): Promise<void> {
-    // Mock implementation
+  async delete(id: string): Promise<void> {
+    void id;
+    throw new Error("Delete operation is not supported in this compatibility client.");
   }
 }
 
-interface AuthClient {
-  redirectToLogin(): void;
-  logout(): void;
-}
+type DeliveryEntity = {
+  id: string;
+  lat: number;
+  lng: number;
+  notes?: string;
+  items?: string[];
+};
 
-const authClient: AuthClient = {
+type VolunteerSummaryEntity = {
+  id: string;
+  active_volunteers: number;
+  total_hours_logged: number;
+  entry_count: number;
+};
+
+const authClient = {
   redirectToLogin() {
-    // Mock implementation
-    console.log("Redirect to login");
+    window.location.assign("/home");
   },
   logout() {
-    // Mock implementation
-    console.log("Logout");
+    window.location.assign("/home");
   },
 };
 
 export const base44 = {
   entities: {
-    AdvocacyUpdate: new EntityClient("AdvocacyUpdate"),
-    Delivery: new EntityClient("Delivery"),
-    Donation: new EntityClient("Donation"),
-    MerchandiseItem: new EntityClient("MerchandiseItem"),
-    Sponsors: new EntityClient("Sponsors"),
-    Sponsor: new EntityClient("Sponsor"),
-    Volunteer: new EntityClient("Volunteer"),
+    AdvocacyUpdate: new EntityClient({ list: getAdvocacyUpdates as () => Promise<BaseEntity[]> }),
+    Delivery: new EntityClient<DeliveryEntity>({
+      list: getDeliveries as () => Promise<DeliveryEntity[]>,
+      create: async (data) => {
+        const lat = Number(data.lat);
+        const lng = Number(data.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          throw new Error("lat and lng are required for delivery creation.");
+        }
+
+        return createDelivery({
+          lat,
+          lng,
+          notes: typeof data.notes === "string" ? data.notes : undefined,
+          items: Array.isArray(data.items) ? data.items.map(String) : undefined,
+        }) as Promise<DeliveryEntity>;
+      },
+    }),
+    Donation: new EntityClient({ list: async () => [] }),
+    MerchandiseItem: new EntityClient({ list: getStoreItems as () => Promise<BaseEntity[]> }),
+    Sponsors: new EntityClient({ list: getSponsors as () => Promise<BaseEntity[]> }),
+    Sponsor: new EntityClient({ list: getSponsors as () => Promise<BaseEntity[]> }),
+    Volunteer: new EntityClient<VolunteerSummaryEntity>({
+      list: async () => {
+        const summary = await getVolunteerSummary();
+        return [{ id: "summary", ...summary }];
+      },
+    }),
   },
   auth: authClient,
   integrations: {
     Core: {
-      async UploadFile({ file }: { file: File }): Promise<{ file_url: string }> {
-        // Mock implementation - returns a dummy URL
-        return { file_url: URL.createObjectURL(file) };
+      async UploadFile(): Promise<{ file_url: string }> {
+        throw new Error("UploadFile is not available in the current backend API.");
       },
     },
   },

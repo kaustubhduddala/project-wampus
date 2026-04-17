@@ -1,31 +1,66 @@
-// import React from "react";
-// import { base44 } from "@/api/base44Client";
-// import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { ShoppingBag, Package, Heart } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { getStoreItems, type ShopItemCard } from "@/api/publicApi";
+import { getDonationUrl, openExternalUrl } from "@/config/externalLinks";
+import { useCart } from "@/state/cart";
 
 export default function Shop() {
-  // const { data: items = [] } = useQuery({
-  //   queryKey: ["merchandise"],
-  //   queryFn: () => base44.entities.MerchandiseItem.list(),
-  //   initialData: [],
-  // });
+  const { addItem, totalItems } = useCart();
+  const [items, setItems] = useState<ShopItemCard[]>([]);
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [itemsError, setItemsError] = useState<string | null>(null);
+  const [lastAddedItemId, setLastAddedItemId] = useState<string | null>(null);
 
-  // const items = [
-  //   {
-  //     "id": "itemId",
-  //     "name": "PJ Wampus Shirt",
-  //   "description": "medium sized shirt",
-  //   "price": 12,
-  //   "image_url": "",
-  //   "category": "apparel",
-  //   "sizes_available": ["M"],
-  //   "in_stock": true,
-  //   "stock_quantity": 0
-  //   }
-  // ]
-  const items = [];
+  useEffect(() => {
+    let mounted = true;
+
+    const loadItems = async () => {
+      setLoadingItems(true);
+      setItemsError(null);
+
+      try {
+        const payload = await getStoreItems();
+        if (mounted) {
+          setItems(payload);
+        }
+      } catch (error) {
+        if (mounted) {
+          setItems([]);
+          setItemsError(error instanceof Error ? error.message : "Failed to load store items");
+        }
+      } finally {
+        if (mounted) {
+          setLoadingItems(false);
+        }
+      }
+    };
+
+    loadItems();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleAddToCart = (item: ShopItemCard) => {
+    addItem({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image_url: item.image_url,
+    });
+    setLastAddedItemId(item.id);
+    window.setTimeout(() => {
+      setLastAddedItemId((current) => (current === item.id ? null : current));
+    }, 1200);
+  };
+
+  const handleDonate = (amount?: number) => {
+    openExternalUrl(getDonationUrl(amount), "Donation");
+  };
+
   return (
     <div>
       {/* Hero Section */}
@@ -54,12 +89,26 @@ export default function Shop() {
       {/* Products Grid */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-4xl font-black mb-8">MERCHANDISE</h2>
+        {totalItems > 0 && (
+          <p className="font-bold mb-6">Cart items: {totalItems}</p>
+        )}
+
+        {loadingItems && (
+          <div className="bg-white neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold">Loading merchandise...</p>
+          </div>
+        )}
+        {itemsError && (
+          <div className="bg-yellow-100 neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold text-yellow-800">Could not load merchandise: {itemsError}</p>
+          </div>
+        )}
         
         {items.length === 0 ? (
           <div className="bg-[#F5F5F5] neo-brutal-border neo-brutal-shadow p-12 text-center">
             <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <p className="font-black text-xl mb-2">COMING SOON</p>
-            <p className="font-bold text-gray-600">Merchandise will be available soon!</p>
+            <p className="font-black text-xl mb-2">NO ITEMS AVAILABLE</p>
+            <p className="font-bold text-gray-600">Inventory has not been published yet.</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-8">
@@ -97,10 +146,11 @@ export default function Shop() {
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-black">${item.price}</span>
                     <Button
+                      onClick={() => handleAddToCart(item)}
                       disabled={!item.in_stock}
                       className="neo-button bg-[#22C55E] text-white font-black"
                     >
-                      ADD TO CART
+                      {lastAddedItemId === item.id ? "ADDED" : "ADD TO CART"}
                     </Button>
                   </div>
                 </div>
@@ -119,20 +169,20 @@ export default function Shop() {
               Skip the merch and make a direct impact today
             </p>
             <div className="grid grid-cols-3 gap-4 mb-8">
-              <button className="neo-button bg-white text-black p-6">
+              <button type="button" onClick={() => handleDonate(25)} className="neo-button bg-white text-black p-6">
                 <p className="text-3xl font-black mb-2">$25</p>
                 <p className="text-xs font-bold">5 Meals</p>
               </button>
-              <button className="neo-button bg-white text-black p-6">
+              <button type="button" onClick={() => handleDonate(50)} className="neo-button bg-white text-black p-6">
                 <p className="text-3xl font-black mb-2">$50</p>
                 <p className="text-xs font-bold">10 Meals</p>
               </button>
-              <button className="neo-button bg-white text-black p-6">
+              <button type="button" onClick={() => handleDonate(100)} className="neo-button bg-white text-black p-6">
                 <p className="text-3xl font-black mb-2">$100</p>
                 <p className="text-xs font-bold">20 Meals</p>
               </button>
             </div>
-            <Button className="neo-button bg-black! text-white px-8 py-6 text-lg font-black">
+            <Button onClick={() => handleDonate()} className="neo-button bg-black! text-white px-8 py-6 text-lg font-black">
               CUSTOM AMOUNT
             </Button>
           </div>

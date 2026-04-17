@@ -1,6 +1,6 @@
 import { Marker, Tooltip } from "react-leaflet";
 import L from "leaflet";
-import type { ResourceLocation } from "@/data/mockDeliveryData";
+import type { ResourceLocation } from "@/data/deliveryData";
 
 const resourceIcon = new L.DivIcon({
   className: "custom-marker",

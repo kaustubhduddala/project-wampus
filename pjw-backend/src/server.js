@@ -1,13 +1,14 @@
 require('dotenv').config();
 
 // needed for JSON stringifying the BigInts in the Prisma Scheme
-BigInt.prototype.toJSON = function() {
-  return this.toString();
-};
+if (typeof BigInt.prototype.toJSON !== 'function') {
+    BigInt.prototype.toJSON = function() {
+        return this.toString();
+    };
+}
 
 const express = require('express');
 const cors = require('cors');
-const prisma = require('./db/db');
 
 // --- 2. VERIFY ENV & DB CONNECTION ---
 if (!process.env.DATABASE_URL) {
@@ -26,39 +27,59 @@ const ordersRoutes = require('./routes/ordersRoutes');
 const fundraisingRoutes = require('./routes/fundraisingRoutes');
 const rolesRoutes = require('./routes/rolesRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const storeItemsRouter = require('./routes/storeItemsRoutes');
+const sponsorsRouter = require('./routes/sponsorsRoutes');
+const logosRouter = require('./routes/logosRoutes');
+const moneyRaisedRoutes = require('./routes/moneyRaisedRoutes');
+const mealsDonatedRoutes = require('./routes/mealsDonatedRoutes');
+const checkoutRouter = require('./routes/checkoutRoutes');
+const heatmapRouter = require('./routes/heatmapRoutes');
+const advocacyUpdatesRoutes = require('./routes/advocacyUpdatesRoutes');
+const deliveriesRoutes = require('./routes/deliveriesRoutes');
+const volunteersRoutes = require('./routes/volunteersRoutes');
+const publicStatsRoutes = require('./routes/publicStatsRoutes');
 
 
 // --- Middleware ---
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' })); 
 app.use(express.json());
 
-// --- MOUNT ROUTES ---
-app.use('/api/auth', authRoutes);
-app.use('/api/orders', ordersRoutes);
-app.use('/api/admin-stats', adminStatsRouter);
-app.use('/api/chat', chatRoutes);
-
-
 // Example: Health Check
 app.get('/', (req, res) => {res.send('Hello World');});
 
-const storeItemsRouter = require('./routes/storeItemsRoutes');
+// --- MOUNT API ROUTES (canonical) ---
+const apiRouter = express.Router();
+
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/orders', ordersRoutes);
+apiRouter.use('/admin-stats', adminStatsRouter);
+apiRouter.use('/chat', chatRoutes);
+apiRouter.use('/items', storeItemsRouter);
+apiRouter.use('/sponsors', sponsorsRouter);
+apiRouter.use('/logos', logosRouter);
+apiRouter.use('/money-raised', moneyRaisedRoutes);
+apiRouter.use('/meals-donated', mealsDonatedRoutes);
+apiRouter.use('/checkout', checkoutRouter);
+apiRouter.use('/heatmap', heatmapRouter);
+apiRouter.use('/roles', rolesRoutes);
+apiRouter.use('/fundraising', fundraisingRoutes);
+apiRouter.use('/advocacy-updates', advocacyUpdatesRoutes);
+apiRouter.use('/deliveries', deliveriesRoutes);
+apiRouter.use('/volunteers', volunteersRoutes);
+apiRouter.use('/stats', publicStatsRoutes);
+
+app.use('/api', apiRouter);
+
+// --- Legacy compatibility routes (non-/api) ---
 app.use('/items', storeItemsRouter);
-
-const ordersRouter = require('./routes/ordersRoutes')
-app.use('/orders', ordersRouter);
-
-const sponsorsRouter = require('./routes/sponsorsRoutes');
 app.use('/sponsors', sponsorsRouter);
-
-const logosRouter = require('./routes/logosRoutes');
 app.use('/logos', logosRouter);
-
-const moneyRaised = require('./routes/moneyRaisedRoutes')
-app.use('/money-raised', moneyRaised);
-
-const mealsDonated = require('./routes/mealsDonatedRoutes')
-app.use('/meals-donated', mealsDonated);
+app.use('/money-raised', moneyRaisedRoutes);
+app.use('/meals-donated', mealsDonatedRoutes);
+app.use('/checkout', checkoutRouter);
+app.use('/heatmap', heatmapRouter);
+app.use('/roles', rolesRoutes);
+app.use('/fundraising', fundraisingRoutes);
 
 // testing page for checkout endpoint
 app.get('/checkout-test',(req, res) => {
@@ -84,7 +105,7 @@ app.get('/checkout-test',(req, res) => {
 
             try {
                 // Send the POST request to your local server
-                const response = await fetch('http://localhost:3001/checkout', {
+                const response = await fetch('http://localhost:3001/api/checkout', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -112,17 +133,6 @@ app.get('/checkout-test',(req, res) => {
 </body>
 </html>`)
 })
-
-const checkoutRouter = require('./routes/checkoutRoutes')
-app.use('/checkout', checkoutRouter);
-const heatmapRouter = require('./routes/heatmapRoutes');
-app.use('/heatmap', heatmapRouter);
-
-const rolesRouter = require('./routes/rolesRoutes');
-app.use('/roles', rolesRouter);
-
-const fundraisingRouter = require('./routes/fundraisingRoutes');
-app.use('/fundraising', fundraisingRouter);
 
 // start server
 const PORT = process.env.PORT || 3001;

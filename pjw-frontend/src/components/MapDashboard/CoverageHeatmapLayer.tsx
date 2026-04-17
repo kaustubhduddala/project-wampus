@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet.heat";
-import type { DeliveryEvent } from "@/data/mockDeliveryData";
+import type { DeliveryEvent } from "@/data/deliveryData";
 
 interface CoverageHeatmapLayerProps {
   events: DeliveryEvent[];
@@ -50,4 +50,3 @@ export default function CoverageHeatmapLayer({ events }: CoverageHeatmapLayerPro
 
   return null;
 }
-``

@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { Marker } from "react-leaflet";
 import L from "leaflet";
-import type { GridCell } from "@/data/mockDeliveryData";
+import type { GridCell } from "@/data/deliveryData";
 
 function cellCenter(cell: GridCell): [number, number] {
   const [[south, west], [north, east]] = cell.bounds;

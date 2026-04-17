@@ -1,10 +1,12 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { createPageUrl } from "@/utils";
 // import { base44 } from "@/api/base44Client";
 import { Home, Info, ShoppingBag, MapPin, Award, Menu, X, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/Chatbot";
+import { EXTERNAL_LINKS, openExternalUrl } from "@/config/externalLinks";
+import { useCart } from "@/state/cart";
 
 const navigationItems = [
   { title: "Home", url: "/home", icon: Home },
@@ -16,10 +18,22 @@ const navigationItems = [
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { totalItems } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const handleLogin = () => {
-    // base44.auth.redirectToLogin();
+    setMobileMenuOpen(false);
+    navigate("/login");
+  };
+
+  const handleDonate = () => {
+    setMobileMenuOpen(false);
+    openExternalUrl(EXTERNAL_LINKS.DONATION_URL, "Donation");
+  };
+
+  const handlePartner = () => {
+    openExternalUrl(EXTERNAL_LINKS.PARTNER_FORM_URL, "Partner form");
   };
 
   return (
@@ -29,7 +43,7 @@ export default function Layout({ children }) {
       <header className="bg-[#22C55E] neo-brutal-border border-b-4 sticky top-0 z-[1000]">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <Link to={"./home"} className="flex items-center gap-3">
+            <Link to={"/home"} className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white neo-brutal-border flex items-center justify-center neo-brutal-shadow-sm">
                 <span className="text-2xl font-black">PJW</span>
               </div>
@@ -56,6 +70,11 @@ export default function Layout({ children }) {
                     >
                       <item.icon className="w-4 h-4 mr-1" />
                       {item.title}
+                      {item.title === "Shop" && totalItems > 0 && (
+                        <span className="ml-2 inline-flex min-w-5 h-5 px-1 items-center justify-center rounded-full bg-black text-white text-xs leading-none">
+                          {totalItems}
+                        </span>
+                      )}
                     </Button>
                   </Link>
                 );
@@ -69,6 +88,7 @@ export default function Layout({ children }) {
                 Login
               </Button>
               <Button 
+                onClick={handleDonate}
                 size="sm"
                 className="neo-button bg-black! text-white hover:bg-gray-900 font-bold ml-1"
               >
@@ -106,6 +126,11 @@ export default function Layout({ children }) {
                     >
                       <item.icon className="w-4 h-4 mr-2" />
                       {item.title}
+                      {item.title === "Shop" && totalItems > 0 && (
+                        <span className="ml-2 inline-flex min-w-5 h-5 px-1 items-center justify-center rounded-full bg-black text-white text-xs leading-none">
+                          {totalItems}
+                        </span>
+                      )}
                     </Button>
                   </Link>
                 );
@@ -117,7 +142,7 @@ export default function Layout({ children }) {
                 <LogIn className="w-4 h-4 mr-2" />
                 Login
               </Button>
-              <Button className="neo-button bg-black! text-white font-bold w-full">
+              <Button onClick={handleDonate} className="neo-button bg-black! text-white font-bold w-full">
                 DONATE NOW
               </Button>
             </nav>
@@ -147,9 +172,17 @@ export default function Layout({ children }) {
             <div>
               <h4 className="font-black mb-4">GET INVOLVED</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#volunteer" className="hover:text-[#22C55E]">Volunteer</a></li>
-                <li><a href="#donate" className="hover:text-[#22C55E]">Donate</a></li>
-                <li><a href="#partner" className="hover:text-[#22C55E]">Partner With Us</a></li>
+                <li><span className="text-gray-400">Volunteer (coming soon)</span></li>
+                <li>
+                  <button type="button" onClick={handleDonate} className="hover:text-[#22C55E]">
+                    Donate
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={handlePartner} className="hover:text-[#22C55E]">
+                    Partner With Us
+                  </button>
+                </li>
               </ul>
             </div>
             <div>

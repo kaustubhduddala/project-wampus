@@ -3,8 +3,6 @@ import { MapPin, Grid3X3, CircleDot, Building2, Zap, List } from "lucide-react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import L from "leaflet";
 import {
-  MOCK_DELIVERY_EVENTS,
-  MOCK_RESOURCES,
   filterEventsByTime,
   buildCoverageGrid,
   addPriorityToCells,
@@ -13,9 +11,11 @@ import {
   PRIORITY_SPOTLIGHT_TOP_PERCENT,
   type TimeFilterKey,
   type GridCell,
+  type DeliveryEvent,
   type ResourceLocation,
   fetchHSOResources,
-} from "@/data/mockDeliveryData";
+} from "@/data/deliveryData";
+import { getDeliveries } from "@/api/publicApi";
 import MapController from "@/components/MapDashboard/MapController";
 import CoverageLayer from "@/components/MapDashboard/CoverageLayer";
 import CoverageHeatmapLayer from "@/components/MapDashboard/CoverageHeatmapLayer";
@@ -33,32 +33,85 @@ export default function HeatmapSection() {
   const mapRef = useRef<L.Map | null>(null);
   const [timeFilter, setTimeFilter] = useState<TimeFilterKey>("all");
   const [layerMode, setLayerMode] = useState<LayerMode>("coverage");
-  const [autoMode, setAutoMode] = useState(true);
+  const autoMode = true;
   const [showResources, setShowResources] = useState(false);
   const [clusterEvents, setClusterEvents] = useState(true);
   const [zoom, setZoom] = useState(12);
-  // Live resources from HSO Feature Service (fallback to mock on error)
-  const [resources, setResources] = useState<ResourceLocation[] | null>(null);
+  const [deliveryEvents, setDeliveryEvents] = useState<DeliveryEvent[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [eventsError, setEventsError] = useState<string | null>(null);
+  const [resources, setResources] = useState<ResourceLocation[]>([]);
+  const [resourcesError, setResourcesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadDeliveries = async () => {
+      setLoadingEvents(true);
+      setEventsError(null);
+
+      try {
+        const deliveries = await getDeliveries();
+        if (!mounted) return;
+
+        const events = deliveries
+          .filter((delivery) => delivery.lat != null && delivery.lng != null)
+          .map((delivery) => ({
+            id: delivery.id,
+            timestamp: delivery.created_at ?? new Date().toISOString(),
+            lat: Number(delivery.lat),
+            lng: Number(delivery.lng),
+            notes: delivery.notes ?? undefined,
+          }));
+
+        setDeliveryEvents(events);
+      } catch (error) {
+        if (mounted) {
+          setDeliveryEvents([]);
+          setEventsError(error instanceof Error ? error.message : "Failed to load delivery events");
+        }
+      } finally {
+        if (mounted) {
+          setLoadingEvents(false);
+        }
+      }
+    };
+
+    loadDeliveries();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     fetchHSOResources()
-      .then((data) => { if (mounted) setResources(data); })
-      .catch((e) => {
-        console.error("HSO fetch failed; using MOCK_RESOURCES", e);
-        if (mounted) setResources(MOCK_RESOURCES);
+      .then((data) => {
+        if (mounted) {
+          setResources(data);
+          setResourcesError(null);
+        }
+      })
+      .catch((error) => {
+        if (mounted) {
+          setResources([]);
+          setResourcesError(error instanceof Error ? error.message : "Failed to load resource locations");
+        }
       });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filteredEvents = useMemo(
-    () => filterEventsByTime(MOCK_DELIVERY_EVENTS, timeFilter),
-    [timeFilter]
+    () => filterEventsByTime(deliveryEvents, timeFilter),
+    [deliveryEvents, timeFilter]
   );
 
   const eventsLast30 = useMemo(
-    () => filterEventsByTime(MOCK_DELIVERY_EVENTS, "30"),
-    []
+    () => filterEventsByTime(deliveryEvents, "30"),
+    [deliveryEvents]
   );
 
   const coverageCells = useMemo(
@@ -67,7 +120,7 @@ export default function HeatmapSection() {
   );
 
   const cellsWithPriority = useMemo(
-    () => addPriorityToCells(coverageCells, eventsLast30, resources ?? MOCK_RESOURCES),
+    () => addPriorityToCells(coverageCells, eventsLast30, resources),
     [coverageCells, eventsLast30, resources]
   );
 
@@ -116,7 +169,8 @@ export default function HeatmapSection() {
   }, []);
 
   const handleCellClick = useCallback(
-    (bounds: L.LatLngBoundsExpression, _cellId?: string) => {
+    (bounds: L.LatLngBoundsExpression, cellId: string) => {
+      void cellId;
       flyToBounds(bounds);
       if (autoMode) setZoom(ZOOM_THRESHOLD);
     },
@@ -140,6 +194,22 @@ export default function HeatmapSection() {
           <p className="text-sm font-bold">Our delivery zones across Austin</p>
         </div>
       </div>
+
+      {loadingEvents && (
+        <div className="mb-4 bg-white neo-brutal-border-thin p-3">
+          <p className="text-sm font-bold">Loading live delivery events...</p>
+        </div>
+      )}
+      {eventsError && (
+        <div className="mb-4 bg-red-100 neo-brutal-border-thin p-3">
+          <p className="text-sm font-bold text-red-700">Could not load delivery events: {eventsError}</p>
+        </div>
+      )}
+      {resourcesError && (
+        <div className="mb-4 bg-yellow-100 neo-brutal-border-thin p-3">
+          <p className="text-sm font-bold text-yellow-800">Resource layer unavailable: {resourcesError}</p>
+        </div>
+      )}
 
       {/* Impact summary */}
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -261,7 +331,7 @@ export default function HeatmapSection() {
                 subdomains="abcd"
                 maxZoom={19}
               />
-              {showResources && <ResourceLayer resources={resources ?? MOCK_RESOURCES} />}
+              {showResources && resources.length > 0 && <ResourceLayer resources={resources} />}
               {effectiveLayer === "coverage" && (
                 <CoverageHeatmapLayer events={filteredEvents} />
               )}
@@ -343,28 +413,36 @@ export default function HeatmapSection() {
               Underserved by our delivery history. Click to zoom on map.
             </p>
             <div className="space-y-3">
-              {topPriority.map((cell: GridCell) => (
-                <button
-                  key={cell.cell_id}
-                  type="button"
-                  onClick={() => flyToBounds(cell.bounds)}
-                  className="w-full text-left p-3 bg-[#F5F5F5] neo-brutal-border-thin hover:bg-[#e5e5e5] transition-colors"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-black">
-                      {priorityLabel(cell.priority_score ?? 0)}
-                    </span>
-                    <span className="text-[#22C55E] font-black text-sm">
-                      {(cell.priority_score ?? 0).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="text-xs font-bold space-y-0.5">
-                    {cell.reason?.slice(0, 2).map((r, i) => (
-                      <div key={i}>• {r}</div>
-                    ))}
-                  </div>
-                </button>
-              ))}
+              {topPriority.length === 0 ? (
+                <div className="bg-[#F5F5F5] neo-brutal-border-thin p-4">
+                  <p className="text-sm font-bold text-gray-700">
+                    No delivery coverage data available yet. Log deliveries to generate priority zones.
+                  </p>
+                </div>
+              ) : (
+                topPriority.map((cell: GridCell) => (
+                  <button
+                    key={cell.cell_id}
+                    type="button"
+                    onClick={() => flyToBounds(cell.bounds)}
+                    className="w-full text-left p-3 bg-[#F5F5F5] neo-brutal-border-thin hover:bg-[#e5e5e5] transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-black">
+                        {priorityLabel(cell.priority_score ?? 0)}
+                      </span>
+                      <span className="text-[#22C55E] font-black text-sm">
+                        {(cell.priority_score ?? 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="text-xs font-bold space-y-0.5">
+                      {cell.reason?.slice(0, 2).map((r, i) => (
+                        <div key={i}>• {r}</div>
+                      ))}
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -372,4 +450,3 @@ export default function HeatmapSection() {
     </div>
   );
 }
-``

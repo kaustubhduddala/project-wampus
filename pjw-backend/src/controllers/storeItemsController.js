@@ -1,5 +1,11 @@
 const prisma = require('../db/db');
 
+const findItemById = async (id) => {
+    return await prisma.store_items.findUnique({
+        where: { item_id: id }
+    });
+};
+
 const storeItemsController = {
 
     getAllItems: async (req, res) => {
@@ -16,9 +22,7 @@ const storeItemsController = {
     getItemById: async (req, res) => {
         try {
             const { id } = req.params;
-            const store_item = await prisma.store_items.findUnique({
-                where: { item_id: id } 
-            });
+            const store_item = findItemById(id);
 
             if (!store_item) {
                 return res.status(404).json({ message: "store item not found" });
@@ -30,4 +34,7 @@ const storeItemsController = {
     }
 };
 
-module.exports = storeItemsController;
+module.exports = { 
+    findItemById, 
+    storeItemsController 
+};

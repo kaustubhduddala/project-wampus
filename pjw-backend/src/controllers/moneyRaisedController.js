@@ -8,6 +8,10 @@ const moneyRaisedController = {
             // and query the first in the list
             const org_info = await prisma.org_info.findFirst();
             
+            if (!org_info) {
+                return res.status(404).json({ message: "Item not found" });
+            }
+
             res.status(200).json(org_info.money_raised);
         } catch (error) {
             console.error("Error fetching money raised:", error);
@@ -20,17 +24,23 @@ const moneyRaisedController = {
             const update = req.body;
 
             if (update.moneyRaised == undefined) {
-                throw Error("Key not found: moneyRaised")
+                return res.status(400).json({ message: "Key not found: moneyRaised" });
             }
-
             if (update.moneyRaised < 0 || 
                 !(typeof update.moneyRaised === 'number') ||
                 !Number.isFinite(update.moneyRaised)) {
-                throw Error("Value is not valid. Expected a finite positive number");
+                return res.status(400).json({ message: "Value is not valid. Expected a finite positive number" });
             }
 
-            const org_info = await prisma.org_info.update({
-                where: { id: 1 },
+            const org_info_record = await prisma.org_info.findFirst();
+            if (!org_info_record) {
+                // Mirror Prisma's P2025 behavior so existing error handling still applies
+                const notFoundError = new Error("Item not found");
+                notFoundError.code = 'P2025';
+                throw notFoundError;
+            }
+            await prisma.org_info.update({
+                where: { id: org_info_record.id },
                 data: {
                     money_raised: update.moneyRaised
                 }

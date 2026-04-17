@@ -63,6 +63,9 @@ app.use('/money-raised', moneyRaised);
 const mealsDonated = require('./routes/mealsDonatedRoutes')
 app.use('/meals-donated', mealsDonated);
 
+const teamPhotoRouter = require('./routes/teamPhotoRoutes');
+app.use('/team-photo', teamPhotoRouter);
+
 const aboutRouter = require('./routes/aboutRoutes');
 app.use('/about', aboutRouter);
 

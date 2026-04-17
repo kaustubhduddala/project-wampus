@@ -60,6 +60,24 @@ const petitionController = {
             res.status(500).json({ message: "Failed to update petition" });
         }
     }
+,
+
+    deletePetition: async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            await prisma.petitions.delete({
+                where: { id: BigInt(id) }
+            });
+            res.status(200).json({ message: "Petition deleted successfully" });
+        } catch (error) {
+            console.error("Error deleting petition:", error);
+            if (error && error.code === 'P2025') {
+                return res.status(404).json({ message: "Petition not found" });
+            }
+            res.status(500).json({ message: "Failed to delete petition" });
+        }
+    }
 };
 
 module.exports = petitionController;

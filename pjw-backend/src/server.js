@@ -63,11 +63,9 @@ app.use('/money-raised', moneyRaised);
 const mealsDonated = require('./routes/mealsDonatedRoutes')
 app.use('/meals-donated', mealsDonated);
 
-<<<<<<< backend
 const teamPhotoRouter = require('./routes/teamPhotoRoutes');
 app.use('/team-photo', teamPhotoRouter);
 
-=======
 const aboutRouter = require('./routes/aboutRoutes');
 app.use('/about', aboutRouter);
 
@@ -134,7 +132,6 @@ app.use('/roles', rolesRouter);
 
 const fundraisingRouter = require('./routes/fundraisingRoutes');
 app.use('/fundraising', fundraisingRouter);
->>>>>>> main
 
 // start server
 const PORT = process.env.PORT || 3001;

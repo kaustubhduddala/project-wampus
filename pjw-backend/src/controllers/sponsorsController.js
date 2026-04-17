@@ -129,10 +129,16 @@ const sponsorsController = {
             const data = {};
 
             if (hasOwn(req.body, 'sponsor_name')) {
-                data.sponsor_name = sponsor_name;
+                if (typeof sponsor_name !== 'string' || sponsor_name.trim() === '') {
+                    return res.status(400).json({ message: 'sponsor_name must be a non-empty string' });
+                }
+                data.sponsor_name = sponsor_name.trim();
             }
             if (hasOwn(req.body, 'sponsor_description')) {
-                data.sponsor_description = sponsor_description;
+                if (typeof sponsor_description !== 'string' || sponsor_description.trim() === '') {
+                    return res.status(400).json({ message: 'sponsor_description must be a non-empty string' });
+                }
+                data.sponsor_description = sponsor_description.trim();
             }
             if (hasOwn(req.body, 'sponsor_picture')) {
                 if (sponsor_picture !== null && typeof sponsor_picture !== 'string') {

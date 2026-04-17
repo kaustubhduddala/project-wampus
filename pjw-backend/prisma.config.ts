@@ -13,4 +13,7 @@ export default defineConfig({
   datasource: {
     url: env("DATABASE_URL"),
   },
+  seed: {
+    command: 'npx ts-node -O "{\\\"module\\\": \\\"commonjs\\\"}" prisma/seed.ts',
+  },
 });

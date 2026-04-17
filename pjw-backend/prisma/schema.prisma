@@ -467,7 +467,22 @@ model org_info {
   vision        String?
   money_raised  Float?
   meals_donated BigInt?
+  date_started  DateTime? @db.Date
   id            BigInt  @id @unique @default(autoincrement())
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model executive_team_entries {
+  id            BigInt   @id @default(autoincrement())
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+  name          String
+  title         String
+  bio           String
+  photo_url     String?
+  display_order Int      @default(0)
 
   @@schema("public")
 }

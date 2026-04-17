@@ -60,6 +60,9 @@ app.use('/money-raised', moneyRaised);
 const mealsDonated = require('./routes/mealsDonatedRoutes')
 app.use('/meals-donated', mealsDonated);
 
+const aboutRouter = require('./routes/aboutRoutes');
+app.use('/about', aboutRouter);
+
 // testing page for checkout endpoint
 app.get('/checkout-test',(req, res) => {
     res.send(`<!DOCTYPE html>

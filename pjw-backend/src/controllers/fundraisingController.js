@@ -24,22 +24,8 @@ const fundraisingController = {
     // update amount
     updateMoneyRaised: async (req, res) => {
         const { money_raised } = req.body;
-        
-        const requesterId = req.user?.id || req.headers['x-user-id'];
-
-        if (!requesterId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-
         try {
-            // check if user is admin or owner
-            const requesterRole = await prisma.user_roles.findUnique({
-                where: { user_id: requesterId }
-            });
-
-            if (!['ADMIN', 'OWNER'].includes(requesterRole?.role)) {
-                return res.status(403).json({ message: "Forbidden: Only Admins/Owners can update funds." });
-            }
+            // role requirement enforced via middleware
 
             const existingOrgInfo = await prisma.org_info.findFirst();
 

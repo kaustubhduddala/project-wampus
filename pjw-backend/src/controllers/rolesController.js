@@ -6,22 +6,8 @@ const rolesController = {
         const { userId } = req.params; // id of user to update
         const { newRole } = req.body;  // new role to assign
         
-        const requesterId = req.user?.id || req.headers['x-user-id'];
-        
-        if (!requesterId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-
         try {
-            // verify user is owner
-            const requesterRole = await prisma.user_roles.findUnique({
-                where: { user_id: requesterId }
-            });
-
-            if (requesterRole?.role !== 'OWNER') {
-                return res.status(403).json({ message: "Forbidden: Only OWNERS can change roles." });
-            }
-
+            // requireRole('OWNER') should be applied as middleware on the route
            // verify new role is valid
             const allowedRoles = ['ADMIN', 'USER'];
             if (!allowedRoles.includes(newRole)) {

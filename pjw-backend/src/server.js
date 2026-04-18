@@ -26,7 +26,6 @@ app.use(express.json());
 const adminStatsRouter = require('./routes/adminStatsRoutes');
 const authRouter = require('./routes/authRoutes');
 const ordersRouter = require('./routes/ordersRoutes');
-const fundraisingRouter = require('./routes/fundraisingRoutes');
 const rolesRouter = require('./routes/rolesRoutes');
 const petitionRouter = require('./routes/petitionRoutes');
 const chatRouter = require('./routes/chatRoutes');
@@ -56,7 +55,6 @@ app.use('/api/about', aboutRouter);
 app.use('/api/checkout', checkoutRouter);
 app.use('/api/heatmap', heatmapRouter);
 app.use('/api/roles', rolesRouter);
-app.use('/api/fundraising', fundraisingRouter);
 
 // Health Check
 app.get('/', (req, res) => {res.send('Hello World');});

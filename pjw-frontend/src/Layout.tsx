@@ -1,11 +1,31 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-// import { createPageUrl } from "@/utils";
-// import { base44 } from "@/api/base44Client";
-import { Home, Info, ShoppingBag, MapPin, Award, Menu, X, LogIn } from "lucide-react";
+import {
+  Home,
+  Info,
+  ShoppingBag,
+  MapPin,
+  Award,
+  Menu,
+  X,
+  LogIn,
+  Users,
+  ShieldCheck,
+  UserCircle2,
+  LogOut,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/Chatbot";
 import { EXTERNAL_LINKS, openExternalUrl } from "@/config/externalLinks";
+import {
+  AUTH_CHANGED_EVENT,
+  clearStoredAuthSession,
+  getAuthMe,
+  getStoredAuthToken,
+  getStoredAuthUser,
+  setStoredAuthSession,
+  type StoredAuthUser,
+} from "@/api/publicApi";
 import { useCart } from "@/state/cart";
 
 const navigationItems = [
@@ -13,6 +33,7 @@ const navigationItems = [
   { title: "About", url: "/about", icon: Info },
   { title: "Shop", url: "/shop", icon: ShoppingBag },
   { title: "Deliveries", url: "/deliveries", icon: MapPin },
+  { title: "Activities", url: "/activities", icon: Users },
   { title: "Sponsors", url: "/sponsors", icon: Award }
 ];
 
@@ -21,10 +42,80 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [authUser, setAuthUser] = React.useState<StoredAuthUser | null>(() => getStoredAuthUser());
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const syncSession = async () => {
+      const token = getStoredAuthToken();
+      if (!token) {
+        if (!cancelled) {
+          setAuthUser(null);
+        }
+        return;
+      }
+
+      const fallbackUser = getStoredAuthUser();
+
+      try {
+        const me = await getAuthMe(token);
+        if (cancelled) return;
+
+        const normalizedUser: StoredAuthUser = {
+          id: me.user.id,
+          email: me.user.email ?? fallbackUser?.email ?? 'unknown@projectwampus.local',
+          role: me.role,
+        };
+
+        setStoredAuthSession(token, normalizedUser);
+        setAuthUser(normalizedUser);
+      } catch (error) {
+        if (cancelled) return;
+
+        if (error instanceof TypeError) {
+          // Avoid forced logout during transient network/server restarts.
+          setAuthUser(fallbackUser);
+          return;
+        }
+
+        clearStoredAuthSession();
+        setAuthUser(null);
+      }
+    };
+
+    syncSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname]);
+
+  React.useEffect(() => {
+    const handleAuthChanged = () => {
+      setAuthUser(getStoredAuthUser());
+    };
+
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    };
+  }, []);
+
+  const authRole = authUser?.role ?? null;
+  const accessLevel = authRole === "ADMIN" || authRole === "OWNER" ? "admin" : "member";
+  const isAdminOrOwner = authRole === "ADMIN" || authRole === "OWNER";
+  const isLoggedIn = Boolean(authUser);
 
   const handleLogin = () => {
     setMobileMenuOpen(false);
     navigate("/login");
+  };
+
+  const handleLogout = () => {
+    clearStoredAuthSession();
+    setMobileMenuOpen(false);
+    navigate("/home");
   };
 
   const handleDonate = () => {
@@ -79,14 +170,41 @@ export default function Layout({ children }) {
                   </Link>
                 );
               })}
-              <Button 
-                onClick={handleLogin}
-                size="sm"
-                className="neo-button bg-transparent! text-white hover:bg-white hover:text-black font-bold ml-1"
-              >
-                <LogIn className="w-4 h-4 mr-1" />
-                Login
-              </Button>
+              {!isLoggedIn ? (
+                <Button
+                  onClick={handleLogin}
+                  size="sm"
+                  className="neo-button bg-transparent! text-white hover:bg-white hover:text-black font-bold ml-1"
+                >
+                  <LogIn className="w-4 h-4 mr-1" />
+                  Login
+                </Button>
+              ) : (
+                <div className="group relative ml-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="neo-button bg-transparent! text-white hover:bg-white hover:text-black font-bold px-3"
+                  >
+                    <UserCircle2 className="w-5 h-5" />
+                    <span className="sr-only">Open profile</span>
+                  </Button>
+                  <div className="hidden group-hover:block group-focus-within:block absolute right-0 top-full mt-2 bg-white neo-brutal-border-thin p-3 min-w-[260px] z-[1100]">
+                    <p className="text-xs font-black text-gray-600">SIGNED IN</p>
+                    <p className="font-black break-all mt-1">{authUser?.email}</p>
+                    <p className="text-sm font-bold mt-1">ACCESS LEVEL: {accessLevel.toUpperCase()}</p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleLogout}
+                      className="neo-button bg-black! text-white font-bold mt-3 w-full"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      LOG OUT
+                    </Button>
+                  </div>
+                </div>
+              )}
               <Button 
                 onClick={handleDonate}
                 size="sm"
@@ -94,6 +212,17 @@ export default function Layout({ children }) {
               >
                 DONATE
               </Button>
+              {isAdminOrOwner && (
+                <Link to="/admin">
+                  <Button
+                    size="sm"
+                    className="neo-button bg-white text-black font-bold ml-1"
+                  >
+                    <ShieldCheck className="w-4 h-4 mr-1" />
+                    Admin
+                  </Button>
+                </Link>
+              )}
             </nav>
 
             {/* Mobile Menu Button */}
@@ -135,16 +264,43 @@ export default function Layout({ children }) {
                   </Link>
                 );
               })}
-              <Button 
-                onClick={handleLogin}
-                className="neo-button bg-transparent! text-white border-white font-bold w-full hover:bg-black!"
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Login
-              </Button>
+              {!isLoggedIn ? (
+                <Button
+                  onClick={handleLogin}
+                  className="neo-button bg-transparent! text-white border-white font-bold w-full hover:bg-black!"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </Button>
+              ) : (
+                <div className="neo-brutal-border-thin bg-white p-3">
+                  <div className="flex items-center gap-2">
+                    <UserCircle2 className="w-5 h-5" />
+                    <p className="font-black">SIGNED IN</p>
+                  </div>
+                  <p className="text-sm font-bold mt-2 break-all">{authUser?.email}</p>
+                  <p className="text-sm font-bold mt-1">Access level: {accessLevel}</p>
+                  <Button
+                    type="button"
+                    onClick={handleLogout}
+                    className="neo-button bg-black! text-white font-bold w-full mt-3"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    LOG OUT
+                  </Button>
+                </div>
+              )}
               <Button onClick={handleDonate} className="neo-button bg-black! text-white font-bold w-full">
                 DONATE NOW
               </Button>
+              {isAdminOrOwner && (
+                <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="neo-button bg-white text-black font-bold w-full">
+                    <ShieldCheck className="w-4 h-4 mr-2" />
+                    Admin
+                  </Button>
+                </Link>
+              )}
             </nav>
           )}
         </div>
@@ -172,7 +328,7 @@ export default function Layout({ children }) {
             <div>
               <h4 className="font-black mb-4">GET INVOLVED</h4>
               <ul className="space-y-2 text-sm">
-                <li><span className="text-gray-400">Volunteer (coming soon)</span></li>
+                <li><Link to="/activities" className="hover:text-[#22C55E]">Volunteer / Activities</Link></li>
                 <li>
                   <button type="button" onClick={handleDonate} className="hover:text-[#22C55E]">
                     Donate

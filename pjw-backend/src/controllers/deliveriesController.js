@@ -1,5 +1,11 @@
 const prisma = require('../db/db');
 
+const MISSING_JSON_BODY_MESSAGE =
+  'Request body missing or invalid JSON. Ensure Content-Type: application/json is set.';
+
+const hasNonEmptyJsonBody = (body) =>
+  body != null && typeof body === 'object' && !Array.isArray(body) && Object.keys(body).length > 0;
+
 const parseLatitudeLongitude = (value, fieldName) => {
   if (value === undefined || value === null || value === '') {
     return { ok: false, message: `${fieldName} is required` };
@@ -98,6 +104,10 @@ const deliveriesController = {
 
   createDelivery: async (req, res) => {
     try {
+      if (!hasNonEmptyJsonBody(req.body)) {
+        return res.status(400).json({ message: MISSING_JSON_BODY_MESSAGE });
+      }
+
       const latResult = parseLatitudeLongitude(req.body.lat, 'lat');
       const lngResult = parseLatitudeLongitude(req.body.lng, 'lng');
 
@@ -117,9 +127,12 @@ const deliveriesController = {
         return res.status(400).json({ message: 'notes must be a string or null' });
       }
 
-      if (req.body.user_id !== undefined && req.body.user_id !== null && typeof req.body.user_id !== 'string') {
+      const requestUserId = req.user?.id;
+      if (!requestUserId && req.body.user_id !== undefined && req.body.user_id !== null && typeof req.body.user_id !== 'string') {
         return res.status(400).json({ message: 'user_id must be a UUID string or null' });
       }
+
+      const resolvedUserId = requestUserId ?? req.body.user_id ?? null;
 
       const created = await prisma.delivery_logs.create({
         data: {
@@ -127,7 +140,7 @@ const deliveriesController = {
           lng: lngResult.value,
           notes: req.body.notes ?? null,
           items: parsedItems,
-          ...(req.body.user_id ? { user_id: req.body.user_id } : {}),
+          ...(resolvedUserId ? { user_id: resolvedUserId } : {}),
         },
         include: {
           users: {

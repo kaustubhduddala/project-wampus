@@ -1,17 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShoppingBag, Package, Heart } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { getStoreItems, type ShopItemCard } from "@/api/publicApi";
+import { checkout, getStoreItems, type ShopItemCard } from "@/api/publicApi";
 import { getDonationUrl, openExternalUrl } from "@/config/externalLinks";
 import { useCart } from "@/state/cart";
 
 export default function Shop() {
-  const { addItem, totalItems } = useCart();
+  const location = useLocation();
+  const { items: cartItems, addItem, totalItems, updateItemQuantity, removeItem, clearCart } = useCart();
   const [items, setItems] = useState<ShopItemCard[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [itemsError, setItemsError] = useState<string | null>(null);
   const [lastAddedItemId, setLastAddedItemId] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  const checkoutSuccess = new URLSearchParams(location.search).get("checkout") === "success";
+
+  useEffect(() => {
+    if (!checkoutSuccess) return;
+    clearCart();
+  }, [checkoutSuccess, clearCart]);
+
+  const cartSubtotal = useMemo(
+    () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [cartItems]
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -61,6 +77,29 @@ export default function Shop() {
     openExternalUrl(getDonationUrl(amount), "Donation");
   };
 
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      setCheckoutError("Your cart is empty.");
+      return;
+    }
+
+    setCheckoutError(null);
+    setCheckoutLoading(true);
+
+    try {
+      const payload = cartItems.map((item) => ({
+        id: item.id,
+        qty: item.quantity,
+      }));
+
+      const response = await checkout(payload);
+      window.location.assign(response.url);
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : "Checkout failed");
+      setCheckoutLoading(false);
+    }
+  };
+
   return (
     <div>
       {/* Hero Section */}
@@ -89,9 +128,90 @@ export default function Shop() {
       {/* Products Grid */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-4xl font-black mb-8">MERCHANDISE</h2>
+
+        {checkoutSuccess && (
+          <div className="bg-[#DCFCE7] neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold text-[#166534]">
+              Checkout completed successfully. Thank you for supporting Project Wampus.
+            </p>
+          </div>
+        )}
+
         {totalItems > 0 && (
           <p className="font-bold mb-6">Cart items: {totalItems}</p>
         )}
+
+        <div className="bg-white neo-brutal-border neo-brutal-shadow p-6 mb-10">
+          <h3 className="text-2xl font-black mb-4">CART</h3>
+
+          {cartItems.length === 0 ? (
+            <p className="font-bold text-gray-600">Your cart is currently empty.</p>
+          ) : (
+            <div className="space-y-3">
+              {cartItems.map((item) => (
+                <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 bg-[#F5F5F5] neo-brutal-border-thin p-3">
+                  <div>
+                    <p className="font-black">{item.name}</p>
+                    <p className="font-bold text-sm">${item.price.toFixed(2)} each</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                      className="neo-button bg-white text-black font-black"
+                    >
+                      -
+                    </Button>
+                    <span className="font-black min-w-8 text-center">{item.quantity}</span>
+                    <Button
+                      type="button"
+                      onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                      className="neo-button bg-white text-black font-black"
+                    >
+                      +
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      className="neo-button bg-red-600! text-white font-black"
+                    >
+                      REMOVE
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-xl font-black">Subtotal: ${cartSubtotal.toFixed(2)}</p>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                onClick={clearCart}
+                disabled={cartItems.length === 0}
+                className="neo-button bg-white text-black font-black"
+              >
+                CLEAR CART
+              </Button>
+              <Button
+                type="button"
+                onClick={handleCheckout}
+                disabled={checkoutLoading || cartItems.length === 0}
+                className="neo-button bg-black! text-white font-black"
+              >
+                {checkoutLoading ? "REDIRECTING..." : "CHECKOUT"}
+              </Button>
+            </div>
+          </div>
+
+          {checkoutError && (
+            <div className="bg-red-100 neo-brutal-border-thin p-3 mt-4">
+              <p className="font-bold text-red-700">{checkoutError}</p>
+            </div>
+          )}
+        </div>
 
         {loadingItems && (
           <div className="bg-white neo-brutal-border-thin p-4 mb-6">

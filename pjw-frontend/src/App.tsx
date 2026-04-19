@@ -6,8 +6,10 @@ import Shop from './pages/Shop';
 import Deliveries from './pages/Deliveries';
 import Sponsors from './pages/Sponsors';
 import Login from './pages/Login';
+import Activities from './pages/Activities';
+import Join from './pages/Join';
+import Admin from './pages/Admin';
 import { CartProvider } from './state/cart';
-// import './index.css'
 
 function App() {
   return (
@@ -21,6 +23,9 @@ function App() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/deliveries" element={<Deliveries />} />
             <Route path="/sponsors" element={<Sponsors />} />
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/join/:token" element={<Join />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/login" element={<Login />} />
           </Routes>
         </Layout>

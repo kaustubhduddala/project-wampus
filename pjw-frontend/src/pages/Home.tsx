@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, Users, Package, DollarSign, Target, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import HeatmapSection from "../components/HeatmapSection";
 import { getHomeStats, type HomeStats } from "@/api/publicApi";
@@ -15,6 +16,7 @@ const DEFAULT_STATS: HomeStats = {
 };
 
 export default function Home() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<HomeStats>(DEFAULT_STATS);
   const [loadingStats, setLoadingStats] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export default function Home() {
                 <Button onClick={handleDonateClick} className="neo-button text-lg px-8 py-6 font-black">
                   DONATE NOW
                 </Button>
-                <Button className="neo-button text-lg px-8 py-6 font-black">
+                <Button onClick={() => navigate('/activities')} className="neo-button text-lg px-8 py-6 font-black">
                   VOLUNTEER
                 </Button>
               </div>
@@ -207,7 +209,7 @@ export default function Home() {
             Every dollar, every volunteer hour, every meal makes a difference.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button className="neo-button bg-black! text-white text-lg px-8 py-6 font-black">
+            <Button onClick={() => navigate('/activities')} className="neo-button bg-black! text-white text-lg px-8 py-6 font-black">
               <Users className="w-5 h-5 mr-2" />
               BECOME A VOLUNTEER
             </Button>

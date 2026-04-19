@@ -1,25 +1,50 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { MapPin, Plus, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { format } from "date-fns";
-import { createDelivery, getDeliveries, type DeliveryLog } from "@/api/publicApi";
+import {
+  AUTH_CHANGED_EVENT,
+  createDelivery,
+  getDeliveries,
+  getStoredAuthToken,
+  type DeliveryLog,
+} from "@/api/publicApi";
 
 export default function Deliveries() {
+  const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState<DeliveryLog[]>([]);
   const [loadingDeliveries, setLoadingDeliveries] = useState(true);
   const [deliveriesError, setDeliveriesError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getStoredAuthToken()));
   const [formData, setFormData] = useState({
     lat: "",
     lng: "",
     notes: "",
     itemsCsv: "",
   });
+
+  useEffect(() => {
+    const syncAuth = () => {
+      const hasAuth = Boolean(getStoredAuthToken());
+      setIsAuthenticated(hasAuth);
+      if (!hasAuth) {
+        setShowForm(false);
+      }
+    };
+
+    syncAuth();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncAuth);
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncAuth);
+    };
+  }, []);
 
   const loadDeliveries = useCallback(async () => {
     setLoadingDeliveries(true);
@@ -157,7 +182,20 @@ export default function Deliveries() {
           </div>
         )}
 
-        {!showForm && (
+        {!isAuthenticated && (
+          <div className="bg-yellow-100 neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold text-yellow-900">You must be logged in to log deliveries.</p>
+            <Button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="neo-button bg-black! text-white font-black mt-3"
+            >
+              GO TO LOGIN
+            </Button>
+          </div>
+        )}
+
+        {isAuthenticated && !showForm && (
           <div className="mb-8">
             <Button
               onClick={() => setShowForm(true)}
@@ -171,7 +209,7 @@ export default function Deliveries() {
 
         {/* Delivery Form */}
 
-        {showForm && (
+        {isAuthenticated && showForm && (
           <Card className="neo-brutal-border neo-brutal-shadow mb-8">
             <CardHeader className="bg-[#22C55E]">
               <CardTitle className="font-black text-2xl text-white">NEW DELIVERY LOG</CardTitle>

@@ -10,6 +10,9 @@ if (typeof BigInt.prototype.toJSON !== 'function') {
 const express = require('express');
 const cors = require('cors');
 
+const MALFORMED_JSON_BODY_MESSAGE =
+    'Request body missing or invalid JSON. Ensure Content-Type: application/json is set.';
+
 // --- 2. VERIFY ENV & DB CONNECTION ---
 if (!process.env.DATABASE_URL) {
   console.error("FATAL ERROR: DATABASE_URL is missing in .env");
@@ -38,6 +41,8 @@ const advocacyUpdatesRoutes = require('./routes/advocacyUpdatesRoutes');
 const deliveriesRoutes = require('./routes/deliveriesRoutes');
 const volunteersRoutes = require('./routes/volunteersRoutes');
 const publicStatsRoutes = require('./routes/publicStatsRoutes');
+const eventsRoutes = require('./routes/eventsRoutes');
+const inviteRoutes = require('./routes/inviteRoutes');
 
 
 // --- Middleware ---
@@ -67,6 +72,8 @@ apiRouter.use('/advocacy-updates', advocacyUpdatesRoutes);
 apiRouter.use('/deliveries', deliveriesRoutes);
 apiRouter.use('/volunteers', volunteersRoutes);
 apiRouter.use('/stats', publicStatsRoutes);
+apiRouter.use('/events', eventsRoutes);
+apiRouter.use('/invite', inviteRoutes);
 
 app.use('/api', apiRouter);
 
@@ -80,6 +87,18 @@ app.use('/checkout', checkoutRouter);
 app.use('/heatmap', heatmapRouter);
 app.use('/roles', rolesRoutes);
 app.use('/fundraising', fundraisingRoutes);
+
+// Standardize malformed JSON parse errors from express.json().
+app.use((err, _req, res, next) => {
+    const isMalformedJsonError =
+        err instanceof SyntaxError && err.status === 400 && Object.prototype.hasOwnProperty.call(err, 'body');
+
+    if (isMalformedJsonError) {
+        return res.status(400).json({ message: MALFORMED_JSON_BODY_MESSAGE });
+    }
+
+    return next(err);
+});
 
 // testing page for checkout endpoint
 app.get('/checkout-test',(req, res) => {

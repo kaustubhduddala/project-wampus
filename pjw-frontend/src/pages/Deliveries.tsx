@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { MapPin, Plus, Check } from "lucide-react";
+import { MapPin, Plus, Check, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -9,8 +9,10 @@ import { format } from "date-fns";
 import {
   AUTH_CHANGED_EVENT,
   createDelivery,
+  deleteDelivery,
   getDeliveries,
   getStoredAuthToken,
+  getStoredAuthUser,
   type DeliveryLog,
 } from "@/api/publicApi";
 
@@ -23,6 +25,8 @@ export default function Deliveries() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getStoredAuthToken()));
+  const [authRole, setAuthRole] = useState<string | null>(() => getStoredAuthUser()?.role ?? null);
+  const [deletingDeliveryId, setDeletingDeliveryId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     lat: "",
     lng: "",
@@ -33,7 +37,11 @@ export default function Deliveries() {
   useEffect(() => {
     const syncAuth = () => {
       const hasAuth = Boolean(getStoredAuthToken());
+      const storedUser = getStoredAuthUser();
+
       setIsAuthenticated(hasAuth);
+      setAuthRole(hasAuth ? storedUser?.role ?? null : null);
+
       if (!hasAuth) {
         setShowForm(false);
       }
@@ -64,6 +72,36 @@ export default function Deliveries() {
   useEffect(() => {
     loadDeliveries();
   }, [loadDeliveries]);
+
+  const isAdminOrOwner = authRole === "ADMIN" || authRole === "OWNER";
+
+  const handleDeleteDelivery = async (deliveryId: string) => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    if (!isAdminOrOwner) {
+      window.alert("Please ask an admin to delete this log.");
+      return;
+    }
+
+    const shouldDelete = window.confirm("Delete this delivery log?");
+    if (!shouldDelete) {
+      return;
+    }
+
+    setDeletingDeliveryId(deliveryId);
+    setDeliveriesError(null);
+
+    try {
+      await deleteDelivery(deliveryId);
+      await loadDeliveries();
+    } catch (error) {
+      setDeliveriesError(error instanceof Error ? error.message : "Failed to delete delivery");
+    } finally {
+      setDeletingDeliveryId(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -324,6 +362,23 @@ export default function Deliveries() {
                     <CardTitle className="font-black text-lg">
                       {delivery.volunteer_email ?? (delivery.user_id ? `User ${delivery.user_id.slice(0, 8)}` : "Unassigned volunteer")}
                     </CardTitle>
+                    {isAuthenticated && (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          void handleDeleteDelivery(delivery.id);
+                        }}
+                        disabled={deletingDeliveryId === delivery.id}
+                        className="neo-button bg-white text-black font-black px-3"
+                        title={
+                          isAdminOrOwner
+                            ? "Delete this delivery log"
+                            : "Ask an admin to delete this log"
+                        }
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">

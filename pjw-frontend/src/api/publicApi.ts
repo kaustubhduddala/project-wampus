@@ -488,6 +488,23 @@ export async function createDelivery(payload: DeliveryCreatePayload): Promise<De
   });
 }
 
+export async function deleteDelivery(deliveryId: string): Promise<{ message: string }> {
+  const token = getStoredAuthToken();
+  if (!token) {
+    throw new Error('Please log in to request delivery deletion.');
+  }
+
+  const normalizedId = String(deliveryId ?? '').trim();
+  if (!normalizedId) {
+    throw new Error('Delivery id is required.');
+  }
+
+  return apiRequest<{ message: string }>(`/api/deliveries/${encodeURIComponent(normalizedId)}`, {
+    method: 'DELETE',
+    headers: buildAuthHeaders(token),
+  });
+}
+
 export async function getAuthMe(authToken?: string): Promise<AuthMeResponse> {
   const token = authToken ?? getStoredAuthToken();
   if (!token) {

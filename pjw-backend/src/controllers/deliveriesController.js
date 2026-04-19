@@ -160,6 +160,28 @@ const deliveriesController = {
       res.status(500).json({ message: 'Failed to create delivery' });
     }
   },
+
+  deleteDelivery: async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ message: 'Invalid delivery id' });
+      }
+
+      await prisma.delivery_logs.delete({
+        where: { id },
+      });
+
+      return res.status(200).json({ message: 'Delivery deleted successfully' });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        return res.status(404).json({ message: 'Delivery not found' });
+      }
+
+      console.error('Error deleting delivery:', error);
+      return res.status(500).json({ message: 'Failed to delete delivery' });
+    }
+  },
 };
 
 module.exports = deliveriesController;

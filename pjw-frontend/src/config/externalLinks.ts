@@ -1,7 +1,7 @@
 const PLACEHOLDER_PREFIX = "__PASTE_";
 
 export const EXTERNAL_LINKS = {
-  DONATION_URL: "__PASTE_DONATION_URL_HERE__",
+  DONATION_URL: "https://www.gofundme.com/f/project-west-campus?attribution_id=sl:69fbf43b-1ea1-45a3-bc7a-3d23c2581405&utm_campaign=natman_sharesheet_dash&utm_medium=customer&utm_source=native_options&utm_content=link_in_bio&fbclid=PAdGRleARRUZdleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAachpooUKzChQvM4rIce8owfdbZKN90mtFrzr8HuphrOS6_tUO93RB9tUJksiA_aem_lJ7p0o37BHYtEGPB4R1Cug",
   PARTNER_FORM_URL: "__PASTE_PARTNER_FORM_URL_HERE__",
   PETITION_URL: "__PASTE_PETITION_URL_HERE__",
   CONTACT_REP_URL: "__PASTE_CONTACT_REP_URL_HERE__",

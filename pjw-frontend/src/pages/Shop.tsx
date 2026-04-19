@@ -13,7 +13,6 @@ export default function Shop() {
   const [items, setItems] = useState<ShopItemCard[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [itemsError, setItemsError] = useState<string | null>(null);
-  const [lastAddedItemId, setLastAddedItemId] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
@@ -67,10 +66,6 @@ export default function Shop() {
       price: item.price,
       image_url: item.image_url,
     });
-    setLastAddedItemId(item.id);
-    window.setTimeout(() => {
-      setLastAddedItemId((current) => (current === item.id ? null : current));
-    }, 1200);
   };
 
   const handleDonate = (amount?: number) => {
@@ -268,9 +263,11 @@ export default function Shop() {
                     <Button
                       onClick={() => handleAddToCart(item)}
                       disabled={!item.in_stock}
-                      className="neo-button bg-[#22C55E] text-white font-black"
+                      variant="ghost"
+                      style={{ backgroundColor: "#22C55E", color: "#ffffff" }}
+                      className="neo-button text-white font-black"
                     >
-                      {lastAddedItemId === item.id ? "ADDED" : "ADD TO CART"}
+                      {cartItems.some((ci) => ci.id === item.id && ci.quantity > 0) ? "ADDED" : "ADD TO CART"}
                     </Button>
                   </div>
                 </div>
@@ -285,26 +282,17 @@ export default function Shop() {
         <div className="bg-[#22C55E] neo-brutal-border neo-brutal-shadow p-12">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-4xl font-black mb-6">PREFER TO DONATE DIRECTLY?</h2>
-            <p className="text-xl font-bold text-black mb-8">
+            <p className="text-lg font-bold text-black mb-2">
+              Every $5 donated provides one meal for a person experiencing homelessness. 
+            </p>
+            <p className="text-xl font-bold text-black mb-6">
               Skip the merch and make a direct impact today
             </p>
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <button type="button" onClick={() => handleDonate(25)} className="neo-button bg-white text-black p-6">
-                <p className="text-3xl font-black mb-2">$25</p>
-                <p className="text-xs font-bold">5 Meals</p>
-              </button>
-              <button type="button" onClick={() => handleDonate(50)} className="neo-button bg-white text-black p-6">
-                <p className="text-3xl font-black mb-2">$50</p>
-                <p className="text-xs font-bold">10 Meals</p>
-              </button>
-              <button type="button" onClick={() => handleDonate(100)} className="neo-button bg-white text-black p-6">
-                <p className="text-3xl font-black mb-2">$100</p>
-                <p className="text-xs font-bold">20 Meals</p>
-              </button>
+            <div className="mb-8">
+              <Button onClick={() => handleDonate()} className="neo-button bg-black! text-white px-8 py-6 text-lg font-black">
+                DONATE NOW
+              </Button>
             </div>
-            <Button onClick={() => handleDonate()} className="neo-button bg-black! text-white px-8 py-6 text-lg font-black">
-              CUSTOM AMOUNT
-            </Button>
           </div>
         </div>
       </section>

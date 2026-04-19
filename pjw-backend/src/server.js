@@ -38,6 +38,7 @@ const teamPhotoRouter = require('./routes/teamPhotoRoutes');
 const aboutRouter = require('./routes/aboutRoutes');
 const checkoutRouter = require('./routes/checkoutRoutes');
 const heatmapRouter = require('./routes/heatmapRoutes');
+const deliveryRouter = require('./routes/deliveryRoutes');
 
 // --- MOUNT ROUTES ---
 app.use('/api/auth', authRouter);
@@ -55,6 +56,7 @@ app.use('/api/about', aboutRouter);
 app.use('/api/checkout', checkoutRouter);
 app.use('/api/heatmap', heatmapRouter);
 app.use('/api/roles', rolesRouter);
+app.use('/api/deliveries', deliveryRouter);
 
 // Health Check
 app.get('/', (req, res) => {res.send('Hello World');});

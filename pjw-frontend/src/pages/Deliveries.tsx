@@ -43,16 +43,47 @@ export default function Deliveries() {
   //     });
   //   },
   // });
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    // e.preventDefault();
-    // createDeliveryMutation.mutate({
-    //   ...formData,
-    //   meals_delivered: parseInt(formData.meals_delivered),
-    //   latitude: parseFloat(formData.latitude),
-    //   longitude: parseFloat(formData.longitude),
-    // });
-  };
+  try {
+    const response = await fetch('http://localhost:5000/api/deliveries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        notes: formData.notes,
+      }),
+    });
+
+    if (response.ok) {
+      alert("Delivery Logged Successfully!");
+      setShowForm(false);
+      // Reset form
+      setFormData({
+        volunteer_name: "", latitude: "", longitude: "",
+        address: "", notes: "", photo_url: "",
+      });
+      // Optionally refresh to see the new entry in the list
+      window.location.reload();
+    } else {
+      const errorData = await response.json();
+      alert(`Error: ${errorData.message}`);
+    }
+  } catch (error) {
+    console.error("Connection failed:", error);
+  }
+};
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   // e.preventDefault();
+  //   // createDeliveryMutation.mutate({
+  //   //   ...formData,
+  //   //   meals_delivered: parseInt(formData.meals_delivered),
+  //   //   latitude: parseFloat(formData.latitude),
+  //   //   longitude: parseFloat(formData.longitude),
+  //   // });
+  // };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -2,7 +2,7 @@ const express = require('express');
 const aboutRouter = express.Router();
 
 const aboutController = require('../controllers/aboutController');
-const requireAuth = require("../middleware/auth");
+const { requireAuth } = require("../middleware/auth");
 const requireRole = require('../middleware/requireRole');
 
 aboutRouter.get('/date-started', aboutController.getDateStarted);

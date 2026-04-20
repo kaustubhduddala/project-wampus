@@ -2,7 +2,7 @@ const express = require('express');
 const logosRouter = express.Router();
 
 const logosController = require('../controllers/logosController');
-const requireAuth = require("../middleware/auth");
+const { requireAuth } = require("../middleware/auth");
 const requireRole = require('../middleware/requireRole');
 
 logosRouter.get('/', logosController.getAllLogos);

@@ -1,7 +1,0 @@
-const express = require('express');
-const deliveryRouter = express.Router();
-const deliveryController = require('../controllers/deliveryController');
-
-deliveryRouter.post('/', deliveryController.createDelivery);
-
-module.exports = deliveryRouter;

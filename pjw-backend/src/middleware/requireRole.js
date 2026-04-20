@@ -1,3 +1,4 @@
+// middleware/requireRole.js
 const prisma = require('../db/db');
 
 const requireRole = (...allowedRoles) => {

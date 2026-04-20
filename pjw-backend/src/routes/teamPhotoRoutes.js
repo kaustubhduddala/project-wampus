@@ -2,7 +2,7 @@ const express = require('express');
 const teamPhotoRouter = express.Router();
 
 const teamPhotoController = require('../controllers/teamPhotoController');
-const requireAuth = require("../middleware/auth");
+const { requireAuth } = require("../middleware/auth");
 const requireRole = require('../middleware/requireRole');
 
 teamPhotoRouter.get('/', teamPhotoController.getTeamPhoto);

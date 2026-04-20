@@ -2,7 +2,7 @@ const express = require('express');
 const sponsorsRouter = express.Router();
 
 const sponsorsController = require('../controllers/sponsorsController');
-const requireAuth = require("../middleware/auth");
+const { requireAuth } = require("../middleware/auth");
 const requireRole = require('../middleware/requireRole');
 
 sponsorsRouter.get('/', sponsorsController.getAllSponsors);

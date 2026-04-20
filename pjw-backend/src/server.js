@@ -27,7 +27,6 @@ const app = express();
 const adminStatsRouter = require('./routes/adminStatsRoutes');
 const authRoutes = require('./routes/authRoutes');    
 const ordersRoutes = require('./routes/ordersRoutes');
-const fundraisingRoutes = require('./routes/fundraisingRoutes');
 const rolesRoutes = require('./routes/rolesRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const storeItemsRouter = require('./routes/storeItemsRoutes');
@@ -70,7 +69,6 @@ apiRouter.use('/meals-donated', mealsDonatedRoutes);
 apiRouter.use('/checkout', checkoutRouter);
 apiRouter.use('/heatmap', heatmapRouter);
 apiRouter.use('/roles', rolesRoutes);
-apiRouter.use('/fundraising', fundraisingRoutes);
 apiRouter.use('/advocacy-updates', advocacyUpdatesRoutes);
 apiRouter.use('/deliveries', deliveriesRoutes);
 apiRouter.use('/volunteers', volunteersRoutes);
@@ -92,7 +90,6 @@ app.use('/meals-donated', mealsDonatedRoutes);
 app.use('/checkout', checkoutRouter);
 app.use('/heatmap', heatmapRouter);
 app.use('/roles', rolesRoutes);
-app.use('/fundraising', fundraisingRoutes);
 
 // Standardize malformed JSON parse errors from express.json().
 app.use((err, _req, res, next) => {

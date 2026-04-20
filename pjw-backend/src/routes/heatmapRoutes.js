@@ -1,7 +1,7 @@
 const express = require('express');
 const heatmapRouter = express.Router();
 const heatmapController = require('../controllers/heatmapController');
-const requireAuth = require("../middleware/auth");
+const { requireAuth } = require("../middleware/auth");
 const requireRole = require('../middleware/requireRole');
 
 heatmapRouter.get('/', heatmapController.getAllHeatmapPoints);

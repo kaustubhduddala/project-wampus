@@ -1,7 +1,7 @@
 import { Marker, Popup } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import L from "leaflet";
-import type { DeliveryEvent } from "@/data/mockDeliveryData";
+import type { DeliveryEvent } from "@/data/deliveryData";
 import { format } from "date-fns";
 
 const SIZE = 16;

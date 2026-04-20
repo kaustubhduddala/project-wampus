@@ -1,43 +1,68 @@
-// import React from "react";
-// import { base44 } from "@/api/base44Client";
-// import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { TrendingUp, Users, Package, DollarSign, Target, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
-// import { Progress } from "@/components/ui/progress";
 import HeatmapSection from "../components/HeatmapSection";
+import { getHomeStats, type HomeStats } from "@/api/publicApi";
+import { EXTERNAL_LINKS, openExternalUrl } from "@/config/externalLinks";
+
+const DEFAULT_STATS: HomeStats = {
+  money_raised: 0,
+  meals_donated: 0,
+  active_volunteers: 0,
+  delivery_count: 0,
+  sponsor_count: 0,
+  fundraising_goal: 50000,
+};
 
 export default function Home() {
-  // const { data: donations = [] } = useQuery({
-  //   queryKey: ["donations"],
-  //   queryFn: () => base44.entities.Donation.list(),
-  //   initialData: [],
-  // });
+  const navigate = useNavigate();
+  const [stats, setStats] = useState<HomeStats>(DEFAULT_STATS);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
-  // const { data: volunteers = [] } = useQuery({
-  //   queryKey: ["volunteers"],
-  //   queryFn: () => base44.entities.Volunteer.list(),
-  //   initialData: [],
-  // });
+  useEffect(() => {
+    let mounted = true;
 
-  // const { data: deliveries = [] } = useQuery({
-  //   queryKey: ["deliveries"],
-  //   queryFn: () => base44.entities.Delivery.list(),
-  //   initialData: [],
-  // });
+    const loadStats = async () => {
+      setLoadingStats(true);
+      setStatsError(null);
 
-  // const totalRaised = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
-  // const totalMeals = deliveries.reduce((sum, d) => sum + (d.meals_delivered || 0), 0);
-  const totalRaised = 10000
-  const totalMeals = 40
-  const goalAmount = 50000;
+      try {
+        const payload = await getHomeStats();
+        if (mounted) {
+          setStats(payload);
+        }
+      } catch (error) {
+        if (mounted) {
+          setStats(DEFAULT_STATS);
+          setStatsError(error instanceof Error ? error.message : "Failed to load home stats");
+        }
+      } finally {
+        if (mounted) {
+          setLoadingStats(false);
+        }
+      }
+    };
+
+    loadStats();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const totalRaised = stats.money_raised;
+  const totalMeals = stats.meals_donated;
+  const goalAmount = stats.fundraising_goal > 0 ? stats.fundraising_goal : 50000;
   const progressPercent = (totalRaised / goalAmount) * 100;
+  const volunteersCount = stats.active_volunteers;
+  const sponsorsCount = stats.sponsor_count;
+  const deliveriesCount = stats.delivery_count;
 
-  const volunteers = [
-    {"name": "Joe"}
-  ]
-  const donations = [
-    {"donation": 10000}
-  ]
+  const handleDonateClick = () => {
+    openExternalUrl(EXTERNAL_LINKS.DONATION_URL, "Donation");
+  };
 
   return (
     <div>
@@ -58,10 +83,10 @@ export default function Home() {
                 Project Wampus delivers hope and hot meals to people experiencing homelessness across Austin, TX.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button className="neo-button text-lg px-8 py-6 font-black">
+                <Button onClick={handleDonateClick} className="neo-button text-lg px-8 py-6 font-black">
                   DONATE NOW
                 </Button>
-                <Button className="neo-button text-lg px-8 py-6 font-black">
+                <Button onClick={() => navigate('/activities')} className="neo-button text-lg px-8 py-6 font-black">
                   VOLUNTEER
                 </Button>
               </div>
@@ -82,6 +107,12 @@ export default function Home() {
       {/* Live Stats Bar */}
       <section className="bg-black text-white py-8 neo-brutal-border border-b-4">
         <div className="container mx-auto px-4">
+          {loadingStats && (
+            <p className="text-center text-sm font-bold mb-4">Loading live impact stats...</p>
+          )}
+          {statsError && (
+            <p className="text-center text-sm font-bold mb-4 text-yellow-300">Could not load latest stats: {statsError}</p>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-4xl font-black text-[#22C55E] mb-2">${totalRaised.toLocaleString()}</div>
@@ -92,12 +123,12 @@ export default function Home() {
               <div className="text-sm font-bold">MEALS DELIVERED</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-black text-[#22C55E] mb-2">{volunteers.length}</div>
+              <div className="text-4xl font-black text-[#22C55E] mb-2">{volunteersCount.toLocaleString()}</div>
               <div className="text-sm font-bold">ACTIVE VOLUNTEERS</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-black text-[#22C55E] mb-2">4</div>
-              <div className="text-sm font-bold">YEARS SERVING</div>
+              <div className="text-4xl font-black text-[#22C55E] mb-2">{deliveriesCount.toLocaleString()}</div>
+              <div className="text-sm font-bold">DELIVERIES LOGGED</div>
             </div>
           </div>
         </div>
@@ -141,13 +172,13 @@ export default function Home() {
             </div>
             <div className="bg-[#F5F5F5] neo-brutal-border p-4">
               <Heart className="w-8 h-8 mb-2 text-[#22C55E]" />
-              <p className="font-black text-lg">{donations.length}</p>
-              <p className="text-xs font-bold">TOTAL DONORS</p>
+              <p className="font-black text-lg">{sponsorsCount.toLocaleString()}</p>
+              <p className="text-xs font-bold">TOTAL SPONSORS</p>
             </div>
             <div className="bg-[#F5F5F5] neo-brutal-border p-4">
               <TrendingUp className="w-8 h-8 mb-2 text-[#22C55E]" />
-              <p className="font-black text-lg">↑ 23%</p>
-              <p className="text-xs font-bold">VS LAST MONTH</p>
+              <p className="font-black text-lg">{deliveriesCount.toLocaleString()}</p>
+              <p className="text-xs font-bold">DELIVERY EVENTS</p>
             </div>
           </div>
         </div>
@@ -178,11 +209,11 @@ export default function Home() {
             Every dollar, every volunteer hour, every meal makes a difference.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button className="neo-button bg-black! text-white text-lg px-8 py-6 font-black">
+            <Button onClick={() => navigate('/activities')} className="neo-button bg-black! text-white text-lg px-8 py-6 font-black">
               <Users className="w-5 h-5 mr-2" />
               BECOME A VOLUNTEER
             </Button>
-            <Button className="neo-button bg-white text-black text-lg px-8 py-6 font-black">
+            <Button onClick={handleDonateClick} className="neo-button bg-white text-black text-lg px-8 py-6 font-black">
               <Heart className="w-5 h-5 mr-2" />
               MAKE A DONATION
             </Button>

@@ -1,31 +1,53 @@
-// import React from "react";
-// import { base44 } from "@/api/base44Client";
-// import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { Award, ExternalLink, Building } from "lucide-react";
 import { Badge } from "../components/ui/badge";
+import { getSponsors, type SponsorCard } from "@/api/publicApi";
+import { EXTERNAL_LINKS, openExternalUrl } from "@/config/externalLinks";
+
+const TIER_ORDER: SponsorCard["tier"][] = ["platinum", "gold", "silver", "bronze", "community"];
 
 export default function Sponsors() {
-  // const { data: sponsors = [] } = useQuery({
-  //   queryKey: ["sponsors"],
-  //   queryFn: () => base44.entities.Sponsor.list(),
-  //   initialData: [],
-  // });
+  const [sponsors, setSponsors] = useState<SponsorCard[]>([]);
+  const [loadingSponsors, setLoadingSponsors] = useState(true);
+  const [sponsorsError, setSponsorsError] = useState<string | null>(null);
 
-  // const activeSponsors = sponsors.filter(s => s.active);
+  useEffect(() => {
+    let mounted = true;
 
-  const activeSponsors = [
-    {
-      "company_name": "HEB",
-      "logo_url": "",
-      "website_url": "https://www.google.com",
-      "tier": "gold",
-      "contribution_amount": 10000,
-      "description": "food distribution",
-      "active": true
-    }
-  ]
+    const loadSponsors = async () => {
+      setLoadingSponsors(true);
+      setSponsorsError(null);
 
-  const tierColors = {
+      try {
+        const payload = await getSponsors();
+        if (mounted) {
+          setSponsors(payload);
+        }
+      } catch (error) {
+        if (mounted) {
+          setSponsors([]);
+          setSponsorsError(error instanceof Error ? error.message : "Failed to load sponsors");
+        }
+      } finally {
+        if (mounted) {
+          setLoadingSponsors(false);
+        }
+      }
+    };
+
+    loadSponsors();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const activeSponsors = useMemo(
+    () => sponsors.filter((sponsor) => sponsor.active),
+    [sponsors]
+  );
+
+  const tierColors: Record<SponsorCard["tier"], string> = {
     platinum: "bg-gray-300 text-gray-900",
     gold: "bg-yellow-400 text-yellow-900",
     silver: "bg-gray-400 text-gray-900",
@@ -33,18 +55,23 @@ export default function Sponsors() {
     community: "bg-[#22C55E] text-white",
   };
 
-  const tierOrder = ["platinum", "gold", "silver", "bronze", "community"];
-  const sponsorsByTier = tierOrder.reduce((acc, tier) => {
-    acc[tier] = activeSponsors.filter(s => s.tier === tier);
-    return acc;
-  }, {});
+  const sponsorsByTier = useMemo(
+    () =>
+      TIER_ORDER.reduce((acc, tier) => {
+        acc[tier] = activeSponsors.filter((sponsor) => sponsor.tier === tier);
+        return acc;
+      }, {} as Record<SponsorCard["tier"], SponsorCard[]>),
+    [activeSponsors]
+  );
 
-  // Placeholder sponsors for carousel
-  const placeholderSponsors = [
-    "ACME Corp", "TechStart", "Green Solutions", "Austin Local", 
-    "Community Bank", "Food Co-op", "Metro Transit", "Health Plus",
-    "EduTech", "Solar Energy", "City Builders", "Fresh Foods"
-  ];
+  const carouselSponsors = useMemo(
+    () => activeSponsors.map((sponsor) => sponsor.company_name).filter(Boolean),
+    [activeSponsors]
+  );
+
+  const handlePartnerClick = () => {
+    openExternalUrl(EXTERNAL_LINKS.PARTNER_FORM_URL, "Partner form");
+  };
 
   return (
     <div>
@@ -84,21 +111,38 @@ export default function Sponsors() {
 
       {/* Continuous Carousel */}
       <section className="bg-white py-12 neo-brutal-border border-b-4 overflow-hidden carousel-container">
-        <div className="carousel-track">
-          {/* Duplicate the array twice for seamless loop */}
-          {[...placeholderSponsors, ...placeholderSponsors].map((sponsor, idx) => (
-            <div
-              key={idx}
-              className="flex-shrink-0 mx-6 w-48 h-32 bg-[#F5F5F5] neo-brutal-border neo-brutal-shadow flex items-center justify-center"
-            >
-              <div className="text-center p-4">
-                <Building className="w-8 h-8 mx-auto mb-2 text-[#22C55E]" />
-                <p className="font-black text-sm">{sponsor}</p>
+        {loadingSponsors ? (
+          <div className="text-center px-4">
+            <p className="font-black">Loading sponsors...</p>
+          </div>
+        ) : carouselSponsors.length > 0 ? (
+          <div className="carousel-track">
+            {[...carouselSponsors, ...carouselSponsors].map((sponsorName, idx) => (
+              <div
+                key={`${sponsorName}-${idx}`}
+                className="flex-shrink-0 mx-6 w-48 h-32 bg-[#F5F5F5] neo-brutal-border neo-brutal-shadow flex items-center justify-center"
+              >
+                <div className="text-center p-4">
+                  <Building className="w-8 h-8 mx-auto mb-2 text-[#22C55E]" />
+                  <p className="font-black text-sm">{sponsorName}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center px-4">
+            <p className="font-black">No sponsor names available yet.</p>
+          </div>
+        )}
       </section>
+
+      {sponsorsError && (
+        <section className="container mx-auto px-4 py-6">
+          <div className="bg-yellow-100 neo-brutal-border-thin p-4">
+            <p className="font-bold text-yellow-800">Could not load sponsors: {sponsorsError}</p>
+          </div>
+        </section>
+      )}
 
       {/* Thank You Message */}
       <section className="container mx-auto px-4 py-12">
@@ -120,7 +164,7 @@ export default function Sponsors() {
           </div>
         ) : (
           <div className="space-y-12">
-            {tierOrder.map((tier) => {
+            {TIER_ORDER.map((tier) => {
               const tierSponsors = sponsorsByTier[tier];
               if (tierSponsors.length === 0) return null;
 
@@ -209,7 +253,7 @@ export default function Sponsors() {
                 <p className="text-xs font-bold">Strong community presence</p>
               </div>
             </div>
-            <button className="neo-button bg-black text-white px-8 py-6 text-lg font-black">
+            <button type="button" onClick={handlePartnerClick} className="neo-button bg-black text-white px-8 py-6 text-lg font-black">
               PARTNER WITH US
             </button>
           </div>

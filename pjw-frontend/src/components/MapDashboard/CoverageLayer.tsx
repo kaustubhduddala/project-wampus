@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Polygon, Tooltip, Marker } from "react-leaflet";
-import type { GridCell } from "@/data/mockDeliveryData";
-import { coverageColor, priorityColorSpotlight } from "@/data/mockDeliveryData";
+import type { GridCell } from "@/data/deliveryData";
+import { coverageColor, priorityColorSpotlight } from "@/data/deliveryData";
 import L from "leaflet";
 
 interface CoverageLayerProps {

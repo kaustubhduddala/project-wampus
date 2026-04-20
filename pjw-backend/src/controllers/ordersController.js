@@ -1,5 +1,14 @@
 const prisma = require('../db/db');
 
+const parseBigIntId = (id) => {
+    try {
+        const parsed = BigInt(id);
+        return parsed > 0n ? parsed : null;
+    } catch {
+        return null;
+    }
+};
+
 const ordersController = {
 
     getAllOrders: async (req, res) => {
@@ -16,8 +25,14 @@ const ordersController = {
     getOrderById: async (req, res) => {
         try {
             const { id } = req.params;
+            const parsedId = parseBigIntId(id);
+
+            if (parsedId === null) {
+                return res.status(400).json({ message: "Invalid order id" });
+            }
+
             const order = await prisma.orders.findUnique({
-                where: { id: parseInt(id) } 
+                where: { id: parsedId } 
             });
 
             if (!order) {

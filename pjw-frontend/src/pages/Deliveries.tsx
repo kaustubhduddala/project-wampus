@@ -1,102 +1,147 @@
-import React, { useState } from "react";
-// import { base44 } from "@/api/base44Client";
-// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Plus, Check, Upload } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { MapPin, Plus, Check, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { format } from "date-fns";
+import {
+  AUTH_CHANGED_EVENT,
+  createDelivery,
+  deleteDelivery,
+  getDeliveries,
+  getStoredAuthToken,
+  getStoredAuthUser,
+  type DeliveryLog,
+} from "@/api/publicApi";
 
 export default function Deliveries() {
-  // const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [deliveries, setDeliveries] = useState<DeliveryLog[]>([]);
+  const [loadingDeliveries, setLoadingDeliveries] = useState(true);
+  const [deliveriesError, setDeliveriesError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getStoredAuthToken()));
+  const [authRole, setAuthRole] = useState<string | null>(() => getStoredAuthUser()?.role ?? null);
+  const [deletingDeliveryId, setDeletingDeliveryId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    volunteer_name: "",
-    latitude: "",
-    longitude: "",
-    address: "",
+    lat: "",
+    lng: "",
     notes: "",
-    photo_url: "",
+    itemsCsv: "",
   });
-  const [uploading, setUploading] = useState(false);
+  useEffect(() => {
+    const syncAuth = () => {
+      const hasAuth = Boolean(getStoredAuthToken());
+      const storedUser = getStoredAuthUser();
 
-  // const { data: deliveries = [] } = useQuery({
-  //   queryKey: ["deliveries"],
-  //   queryFn: () => base44.entities.Delivery.list("-created_date"),
-  //   initialData: [],
-  // });
+      setIsAuthenticated(hasAuth);
+      setAuthRole(hasAuth ? storedUser?.role ?? null : null);
 
-  // const createDeliveryMutation = useMutation({
-  //   mutationFn: (data: any) => base44.entities.Delivery.create(data),
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-  //     setShowForm(false);
-  //     setFormData({
-  //       volunteer_name: "",
-  //       meals_delivered: "",
-  //       latitude: "",
-  //       longitude: "",
-  //       address: "",
-  //       notes: "",
-  //       photo_url: "",
-  //     });
-  //   },
-  // });
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+      if (!hasAuth) {
+        setShowForm(false);
+      }
+    };
 
-  try {
-    const response = await fetch('http://localhost:5000/api/deliveries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        notes: formData.notes,
-      }),
-    });
+    syncAuth();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncAuth);
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncAuth);
+    };
+  }, []);
 
-    if (response.ok) {
-      alert("Delivery Logged Successfully!");
-      setShowForm(false);
-      // Reset form
-      setFormData({
-        volunteer_name: "", latitude: "", longitude: "",
-        address: "", notes: "", photo_url: "",
-      });
-      // Optionally refresh to see the new entry in the list
-      window.location.reload();
-    } else {
-      const errorData = await response.json();
-      alert(`Error: ${errorData.message}`);
+  const loadDeliveries = useCallback(async () => {
+    setLoadingDeliveries(true);
+    setDeliveriesError(null);
+
+    try {
+      const payload = await getDeliveries();
+      setDeliveries(payload);
+    } catch (error) {
+      setDeliveries([]);
+      setDeliveriesError(error instanceof Error ? error.message : "Failed to load deliveries");
+    } finally {
+      setLoadingDeliveries(false);
     }
-  } catch (error) {
-    console.error("Connection failed:", error);
-  }
-};
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   // e.preventDefault();
-  //   // createDeliveryMutation.mutate({
-  //   //   ...formData,
-  //   //   meals_delivered: parseInt(formData.meals_delivered),
-  //   //   latitude: parseFloat(formData.latitude),
-  //   //   longitude: parseFloat(formData.longitude),
-  //   // });
-  // };
+  }, []);
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  useEffect(() => {
+    loadDeliveries();
+  }, [loadDeliveries]);
 
-    setUploading(true);
-    // try {
-    //   const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    //   setFormData({ ...formData, photo_url: file_url });
-    // } catch (error) {
-    //   console.error("Upload failed:", error);
-    // }
-    setUploading(false);
+  const isAdminOrOwner = authRole === "ADMIN" || authRole === "OWNER";
+
+  const handleDeleteDelivery = async (deliveryId: string) => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    if (!isAdminOrOwner) {
+      window.alert("Please ask an admin to delete this log.");
+      return;
+    }
+
+    const shouldDelete = window.confirm("Delete this delivery log?");
+    if (!shouldDelete) {
+      return;
+    }
+
+    setDeletingDeliveryId(deliveryId);
+    setDeliveriesError(null);
+
+    try {
+      await deleteDelivery(deliveryId);
+      await loadDeliveries();
+    } catch (error) {
+      setDeliveriesError(error instanceof Error ? error.message : "Failed to delete delivery");
+    } finally {
+      setDeletingDeliveryId(null);
+    }
+  };
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+
+    const lat = Number(formData.lat);
+    const lng = Number(formData.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      setSubmitError("Latitude and longitude must be valid numbers.");
+      return;
+    }
+
+    const items = formData.itemsCsv
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    setSubmitting(true);
+    try {
+      await createDelivery({
+        lat,
+        lng,
+        notes: formData.notes.trim() ? formData.notes.trim() : undefined,
+        items,
+      });
+
+      setShowForm(false);
+      setFormData({
+        lat: "",
+        lng: "",
+        notes: "",
+        itemsCsv: "",
+      });
+      await loadDeliveries();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Failed to create delivery log");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const getLocation = () => {
@@ -105,8 +150,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         (position) => {
           setFormData({
             ...formData,
-            latitude: position.coords.latitude.toFixed(6),
-            longitude: position.coords.longitude.toFixed(6),
+            lat: position.coords.latitude.toFixed(6),
+            lng: position.coords.longitude.toFixed(6),
           });
         },
         (error) => {
@@ -116,21 +161,20 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   };
 
-  // const totalMeals = deliveries.reduce((sum, d) => sum + (d.meals_delivered || 0), 0);
-  const totalMeals = 500;
-  const deliveries = [
-    {
-      "id": "something",
-      "created_date": "01/10/2026",
-      "volunteer_name": "Bob",
-      "latitude": 21.34134,
-      "longitude": 21.34123,
-      "address": "564 Oak Street",
-      "notes": "delivery went awesomely",
-      "photo_url": "",
-      "status": "completed"
-    }
-  ]
+  const uniqueVolunteerCount = useMemo(() => {
+    const keys = new Set(
+      deliveries
+        .map((delivery) => delivery.volunteer_email ?? delivery.user_id)
+        .filter(Boolean)
+    );
+    return keys.size;
+  }, [deliveries]);
+
+  const totalTaggedItems = useMemo(
+    () => deliveries.reduce((sum, delivery) => sum + (delivery.items?.length ?? 0), 0),
+    [deliveries]
+  );
+
   return (
     <div>
       {/* Hero Section */}
@@ -149,34 +193,47 @@ const handleSubmit = async (e: React.FormEvent) => {
       {/* Stats Bar */}
       <section className="bg-black text-white py-8 neo-brutal-border border-b-4">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 gap-6 text-center">
-            {/* <div>
-              <p className="text-4xl font-black text-[#22C55E]">{totalMeals}</p>
-              <p className="text-sm font-bold">TOTAL MEALS</p>
-            </div> */}
+          <div className="grid grid-cols-3 gap-6 text-center">
             <div>
               <p className="text-4xl font-black text-[#22C55E]">{deliveries.length}</p>
               <p className="text-sm font-bold">DELIVERIES</p>
             </div>
             <div>
               <p className="text-4xl font-black text-[#22C55E]">
-                {new Set(deliveries.map(d => d.volunteer_name)).size}
+                {uniqueVolunteerCount}
               </p>
               <p className="text-sm font-bold">VOLUNTEERS</p>
             </div>
-            {/* <div>
-              <p className="text-4xl font-black text-[#22C55E]">
-                {deliveries.length > 0 ? (totalMeals / deliveries.length).toFixed(1) : 0}
-              </p>
-              <p className="text-sm font-bold">AVG MEALS/DELIVERY</p>
-            </div> */}
+            <div>
+              <p className="text-4xl font-black text-[#22C55E]">{totalTaggedItems}</p>
+              <p className="text-sm font-bold">TAGGED ITEMS</p>
+            </div>
           </div>
         </div>
       </section>
 
       <div className="container mx-auto px-4 py-16">
         {/* Log New Delivery Button */}
-        { !showForm && (
+        {deliveriesError && (
+          <div className="bg-yellow-100 neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold text-yellow-800">Could not load deliveries: {deliveriesError}</p>
+          </div>
+        )}
+
+        {!isAuthenticated && (
+          <div className="bg-yellow-100 neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold text-yellow-900">You must be logged in to log deliveries.</p>
+            <Button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="neo-button bg-black! text-white font-black mt-3"
+            >
+              GO TO LOGIN
+            </Button>
+          </div>
+        )}
+
+        {isAuthenticated && !showForm && (
           <div className="mb-8">
             <Button
               onClick={() => setShowForm(true)}
@@ -190,7 +247,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         {/* Delivery Form */}
 
-        { showForm && (
+        {isAuthenticated && showForm && (
           <Card className="neo-brutal-border neo-brutal-shadow mb-8">
             <CardHeader className="bg-[#22C55E]">
               <CardTitle className="font-black text-2xl text-white">NEW DELIVERY LOG</CardTitle>
@@ -199,69 +256,40 @@ const handleSubmit = async (e: React.FormEvent) => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block font-black mb-2">VOLUNTEER NAME*</label>
-                    <Input
-                      required
-                      value={formData.volunteer_name}
-                      onChange={(e) => setFormData({ ...formData, volunteer_name: e.target.value })}
-                      className="neo-brutal-border-thin font-bold"
-                      placeholder="Your name"
-                    />
-                  </div>
-                  {/* <div>
-                    <label className="block font-black mb-2">MEALS DELIVERED*</label>
-                    <Input
-                      required
-                      type="number"
-                      min="1"
-                      value={formData.meals_delivered}
-                      onChange={(e) => setFormData({ ...formData, meals_delivered: e.target.value })}
-                      className="neo-brutal-border-thin font-bold"
-                      placeholder="Number of meals"
-                    />
-                  </div> */}
-                </div>
-
-                <div>
-                  <label className="block font-black mb-2">LOCATION*</label>
-                  <div className="grid md:grid-cols-3 gap-4">
+                    <label className="block font-black mb-2">LATITUDE*</label>
                     <Input
                       required
                       type="number"
                       step="any"
-                      value={formData.latitude}
-                      onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                      value={formData.lat}
+                      onChange={(e) => setFormData({ ...formData, lat: e.target.value })}
                       className="neo-brutal-border-thin font-bold"
                       placeholder="Latitude"
                     />
+                  </div>
+                  <div>
+                    <label className="block font-black mb-2">LONGITUDE*</label>
                     <Input
                       required
                       type="number"
                       step="any"
-                      value={formData.longitude}
-                      onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                      value={formData.lng}
+                      onChange={(e) => setFormData({ ...formData, lng: e.target.value })}
                       className="neo-brutal-border-thin font-bold"
                       placeholder="Longitude"
                     />
-                    <Button
-                      type="button"
-                      onClick={getLocation}
-                      className="neo-button bg-black! text-white font-black"
-                    >
-                      <MapPin className="w-4 h-4 mr-2" />
-                      GET LOCATION
-                    </Button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-black mb-2">ADDRESS/LANDMARK</label>
-                  <Input
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="neo-brutal-border-thin font-bold"
-                    placeholder="Street address or nearby landmark"
-                  />
+                  <Button
+                    type="button"
+                    onClick={getLocation}
+                    className="neo-button bg-black! text-white font-black"
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    USE CURRENT LOCATION
+                  </Button>
                 </div>
 
                 <div>
@@ -276,28 +304,29 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
 
                 <div>
-                  <label className="block font-black mb-2">PHOTO (OPTIONAL)</label>
-                  <div className="flex gap-4">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="neo-brutal-border-thin font-bold"
-                      disabled={uploading}
-                    />
-                    {uploading && <p className="font-bold">Uploading...</p>}
-                    {formData.photo_url && <Check className="w-6 h-6 text-[#22C55E]" />}
-                  </div>
+                  <label className="block font-black mb-2">ITEM TAGS (OPTIONAL)</label>
+                  <Input
+                    value={formData.itemsCsv}
+                    onChange={(e) => setFormData({ ...formData, itemsCsv: e.target.value })}
+                    className="neo-brutal-border-thin font-bold"
+                    placeholder="meal-bag, water, socks"
+                  />
                 </div>
+
+                {submitError && (
+                  <div className="bg-red-100 neo-brutal-border-thin p-3">
+                    <p className="font-bold text-red-700">{submitError}</p>
+                  </div>
+                )}
 
                 <div className="flex gap-4">
                   <Button
                     type="submit"
-                    disabled={/*createDeliveryMutation.isPending*/ false}
+                    disabled={submitting}
                     className="neo-button bg-[#22C55E]! text-white font-black px-8"
                   >
                     <Check className="w-5 h-5 mr-2" />
-                    LOG DELIVERY
+                    {submitting ? "SAVING..." : "LOG DELIVERY"}
                   </Button>
                   <Button
                     type="button"
@@ -310,11 +339,15 @@ const handleSubmit = async (e: React.FormEvent) => {
               </form>
             </CardContent>
           </Card>
-        ) }
+        )}
 
         {/* Deliveries List */}
         <h2 className="text-3xl font-black mb-6">RECENT DELIVERIES</h2>
-        {deliveries.length === 0 ? (
+        {loadingDeliveries ? (
+          <div className="bg-white neo-brutal-border-thin p-4 mb-6">
+            <p className="font-bold">Loading delivery logs...</p>
+          </div>
+        ) : deliveries.length === 0 ? (
           <div className="bg-[#F5F5F5] neo-brutal-border neo-brutal-shadow p-12 text-center">
             <MapPin className="w-16 h-16 mx-auto mb-4 text-gray-400" />
             <p className="font-black text-xl mb-2">NO DELIVERIES YET</p>
@@ -326,13 +359,26 @@ const handleSubmit = async (e: React.FormEvent) => {
               <Card key={delivery.id} className="neo-brutal-border neo-brutal-shadow">
                 <CardHeader className="bg-[#F5F5F5] neo-brutal-border-thin border-b">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="font-black text-lg">{delivery.volunteer_name}</CardTitle>
-                    {/* <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 bg-[#22C55E] neo-brutal-border-thin flex items-center justify-center">
-                        <span className="font-black text-white">{delivery.meals_delivered}</span>
-                      </div>
-                      <span className="text-sm font-bold">meals</span>
-                    </div> */}
+                    <CardTitle className="font-black text-lg">
+                      {delivery.volunteer_email ?? (delivery.user_id ? `User ${delivery.user_id.slice(0, 8)}` : "Unassigned volunteer")}
+                    </CardTitle>
+                    {isAuthenticated && (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          void handleDeleteDelivery(delivery.id);
+                        }}
+                        disabled={deletingDeliveryId === delivery.id}
+                        className="neo-button bg-white text-black font-black px-3"
+                        title={
+                          isAdminOrOwner
+                            ? "Delete this delivery log"
+                            : "Ask an admin to delete this log"
+                        }
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -341,27 +387,24 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <MapPin className="w-4 h-4 mt-1 text-[#22C55E]" />
                       <div>
                         <p className="font-bold text-sm">
-                          {delivery.latitude}, {delivery.longitude}
+                          {delivery.lat ?? "N/A"}, {delivery.lng ?? "N/A"}
                         </p>
-                        {delivery.address && (
-                          <p className="text-xs font-bold text-gray-600">{delivery.address}</p>
-                        )}
                       </div>
                     </div>
+                    {delivery.items.length > 0 && (
+                      <div className="text-xs font-bold bg-[#EEF6E8] p-3 neo-brutal-border-thin">
+                        Items: {delivery.items.join(", ")}
+                      </div>
+                    )}
                     {delivery.notes && (
                       <p className="text-sm font-bold bg-[#F5F5F5] p-3 neo-brutal-border-thin">
                         {delivery.notes}
                       </p>
                     )}
-                    {delivery.photo_url && (
-                      <img
-                        src={delivery.photo_url}
-                        alt="Delivery"
-                        className="w-full neo-brutal-border-thin"
-                      />
-                    )}
                     <p className="text-xs font-bold text-gray-600">
-                      {format(new Date(delivery.created_date), "MMM d, yyyy 'at' h:mm a")}
+                      {delivery.created_at
+                        ? format(new Date(delivery.created_at), "MMM d, yyyy 'at' h:mm a")
+                        : "Unknown timestamp"}
                     </p>
                   </div>
                 </CardContent>

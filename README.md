@@ -52,39 +52,15 @@ npm start      # Start without nodemon
 
 The server starts on port `3001` by default (`http://localhost:3001`).
 
-### Prisma
 
-After setting `DATABASE_URL` in your `.env`, generate the Prisma client:
+
+After pulling schema changes, run Prisma migration + client generation:
 
 ```bash
+cd pjw-backend
+npx prisma migrate deploy
 npx prisma generate
 ```
-
----
-
-## Environment Variables
-
-### Backend (`pjw-backend/.env`)
-
-| Variable               | Required | Description                                                   |
-| ---------------------- | -------- | ------------------------------------------------------------- |
-| `DATABASE_URL`         | Yes      | PostgreSQL connection string (from Supabase project settings) |
-| `SUPABASE_URL`         | Yes      | Supabase project URL (e.g. `https://<project>.supabase.co`)   |
-| `SUPABASE_SERVICE_KEY` | Yes      | Supabase service role secret key                              |
-| `PORT`                 | No       | Port for the Express server (defaults to `3001`)              |
-| `CORS_ORIGIN`          | No       | Allowed CORS origin (defaults to `*`)                         |
-
-Example `pjw-backend/.env`:
-
-```env
-DATABASE_URL="postgresql://postgres:<password>@db.<project>.supabase.co:5432/postgres"
-SUPABASE_URL="https://<project>.supabase.co"
-SUPABASE_SERVICE_KEY="<your-service-role-key>"
-PORT=3001
-CORS_ORIGIN=http://localhost:5173
-```
-
-> **Note:** Never commit `.env` files to version control. The `SUPABASE_SERVICE_KEY` has admin-level database access and must be kept secret.
 
 ### Frontend (`pjw-frontend/.env`)
 

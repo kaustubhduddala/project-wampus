@@ -1,0 +1,44 @@
+# Environment files (keep examples)
+.env
+.env.* 
+!.env.example
+
+# Node / build
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+dist-ssr
+*.local
+
+# Keys, certs
+*.pem
+*.key
+*.crt
+aws-credentials
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.vercel
+
+/generated/prisma

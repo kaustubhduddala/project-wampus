@@ -424,6 +424,9 @@ model users {
   sessions                    sessions[]
   deliveries                  deliveries[]
   delivery_logs               delivery_logs[]
+  events_created              events[]        @relation("events_created_byTousers")
+  invite_tokens_created       invite_tokens[] @relation("invite_tokens_created_byTousers")
+  invite_tokens_used          invite_tokens[] @relation("invite_tokens_used_byTousers")
   user_roles                  user_roles?
   volunteer_data              volunteer_data[]
 
@@ -574,6 +577,39 @@ model advocacy_updates {
   action_taken String?
   link_url     String?
 
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model events {
+  id          BigInt    @id @default(autoincrement())
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  title       String
+  description String?
+  location    String?
+  event_date  DateTime  @db.Timestamptz(6)
+  event_type  String?
+  created_by  String?   @db.Uuid
+  users       users?    @relation("events_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model invite_tokens {
+  id                                              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at                                      DateTime  @default(now()) @db.Timestamptz(6)
+  created_by                                      String    @db.Uuid
+  email                                           String
+  token_hash                                      String?   @unique
+  expires_at                                      DateTime  @default(dbgenerated("(now() + '24 hours'::interval)")) @db.Timestamptz(6)
+  used_at                                         DateTime? @db.Timestamptz(6)
+  used_by                                         String?   @db.Uuid
+  users_invite_tokens_created_byTousers           users     @relation("invite_tokens_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_invite_tokens_used_byTousers              users?    @relation("invite_tokens_used_byTousers", fields: [used_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([email])
+  @@index([expires_at])
   @@schema("public")
 }
 

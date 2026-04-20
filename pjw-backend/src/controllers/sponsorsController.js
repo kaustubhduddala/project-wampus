@@ -82,8 +82,11 @@ const sponsorsController = {
         try {
             const { sponsor_name, sponsor_description, amount, sponsor_picture, date_donated } = req.body;
 
-            if (!sponsor_name || !sponsor_description) {
-                return res.status(400).json({ message: 'sponsor_name and sponsor_description are required' });
+            if (typeof sponsor_name !== 'string' || sponsor_name.trim() === '') {
+                return res.status(400).json({ message: 'sponsor_name is required and must be a non-empty string' });
+            }
+            if (typeof sponsor_description !== 'string' || sponsor_description.trim() === '') {
+                return res.status(400).json({ message: 'sponsor_description is required and must be a non-empty string' });
             }
             if (sponsor_picture !== undefined && sponsor_picture !== null && typeof sponsor_picture !== 'string') {
                 return res.status(400).json({ message: 'sponsor_picture must be a string or null' });
@@ -101,8 +104,8 @@ const sponsorsController = {
 
             const newSponsor = await prisma.sponsors.create({
                 data: {
-                    sponsor_name,
-                    sponsor_description,
+                    sponsor_name: sponsor_name.trim(),
+                    sponsor_description: sponsor_description.trim(),
                     amount: parsedAmount.value,
                     sponsor_picture: sponsor_picture ?? null,
                     date_donated: parsedDate.isOmitted ? null : parsedDate.value
@@ -129,10 +132,16 @@ const sponsorsController = {
             const data = {};
 
             if (hasOwn(req.body, 'sponsor_name')) {
-                data.sponsor_name = sponsor_name;
+                if (typeof sponsor_name !== 'string' || sponsor_name.trim() === '') {
+                    return res.status(400).json({ message: 'sponsor_name must be a non-empty string' });
+                }
+                data.sponsor_name = sponsor_name.trim();
             }
             if (hasOwn(req.body, 'sponsor_description')) {
-                data.sponsor_description = sponsor_description;
+                if (typeof sponsor_description !== 'string' || sponsor_description.trim() === '') {
+                    return res.status(400).json({ message: 'sponsor_description must be a non-empty string' });
+                }
+                data.sponsor_description = sponsor_description.trim();
             }
             if (hasOwn(req.body, 'sponsor_picture')) {
                 if (sponsor_picture !== null && typeof sponsor_picture !== 'string') {

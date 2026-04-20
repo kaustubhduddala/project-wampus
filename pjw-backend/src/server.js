@@ -43,6 +43,9 @@ const volunteersRoutes = require('./routes/volunteersRoutes');
 const publicStatsRoutes = require('./routes/publicStatsRoutes');
 const eventsRoutes = require('./routes/eventsRoutes');
 const inviteRoutes = require('./routes/inviteRoutes');
+const petitionRouter = require('./routes/petitionRoutes');
+const teamPhotoRouter = require('./routes/teamPhotoRoutes');
+const aboutRouter = require('./routes/aboutRoutes');
 
 
 // --- Middleware ---
@@ -74,6 +77,9 @@ apiRouter.use('/volunteers', volunteersRoutes);
 apiRouter.use('/stats', publicStatsRoutes);
 apiRouter.use('/events', eventsRoutes);
 apiRouter.use('/invite', inviteRoutes);
+apiRouter.use('/petitions', petitionRouter);
+apiRouter.use('/team-photo', teamPhotoRouter);
+apiRouter.use('/about', aboutRouter);
 
 app.use('/api', apiRouter);
 
@@ -100,12 +106,13 @@ app.use((err, _req, res, next) => {
     return next(err);
 });
 
+
+
 // testing page for checkout endpoint
 app.get('/checkout-test',(req, res) => {
-    res.send(`<!DOCTYPE html>
+  res.send(`<!DOCTYPE html>
 <html lang="en">
 <body>
-
     <button id="checkout-btn">Checkout Now</button>
 
     <script>
@@ -148,7 +155,7 @@ app.get('/checkout-test',(req, res) => {
                 checkoutBtn.innerText = 'Checkout Now';
             }
         });
-    </script>
+  </script>
 </body>
 </html>`)
 })

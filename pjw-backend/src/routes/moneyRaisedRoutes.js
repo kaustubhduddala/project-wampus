@@ -2,11 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const moneyRaisedController = require("../controllers/moneyRaisedController");
-const prisma = require("../db/db");
+const requireAuth = require("../middleware/auth");
+const requireRole = require('../middleware/requireRole');
 
 router.get("/", moneyRaisedController.getTotalMoneyRaised);
-
-// needs auth middleware
-router.patch("/", moneyRaisedController.patchMoneyRaised);
+router.patch("/", requireAuth, requireRole('ADMIN','OWNER'), moneyRaisedController.patchMoneyRaised);
 
 module.exports = router;

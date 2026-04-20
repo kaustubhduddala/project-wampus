@@ -33,7 +33,6 @@ export default function Deliveries() {
     notes: "",
     itemsCsv: "",
   });
-
   useEffect(() => {
     const syncAuth = () => {
       const hasAuth = Boolean(getStoredAuthToken());
@@ -102,6 +101,7 @@ export default function Deliveries() {
       setDeletingDeliveryId(null);
     }
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

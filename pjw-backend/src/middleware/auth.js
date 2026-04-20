@@ -1,5 +1,5 @@
 const supabase = require('../config/supabase');
-const db = require('../db/db');
+const prisma = require('../db/db');
 
 const MEMBER_ROLES = new Set(['USER', 'ADMIN', 'OWNER']);
 const ADMIN_ROLES = new Set(['ADMIN', 'OWNER']);
@@ -32,7 +32,7 @@ async function resolveMemberFromToken(token) {
     return { ok: false, status: 401, payload: { error: 'Invalid token' } };
   }
 
-  const userRole = await db.user_roles.findUnique({
+  const userRole = await prisma.user_roles.findUnique({
     where: { user_id: user.id },
     select: { role: true },
   });

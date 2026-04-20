@@ -19,14 +19,9 @@ const adminStatsController = {
     // Update stats (Admin/Owner only)
     updateAdminStats: async (req, res) => {
         const { active_volunteers, percent_growth } = req.body;
-        const requesterId = req.user?.id || req.headers['x-user-id'];
 
         try {
-            const requesterRole = await prisma.user_roles.findUnique({ where: { user_id: requesterId } });
-            if (!['ADMIN', 'OWNER'].includes(requesterRole?.role)) {
-                return res.status(403).json({ message: "Forbidden" });
-            }
-
+            // role requirement enforced via middleware
             const existing = await prisma.org_info.findFirst();
             const updated = await prisma.org_info.update({
                 where: { biography: existing.biography },

@@ -1,0 +1,39 @@
+const prisma = require('../db/db');
+
+const deliveryController = {
+    createDelivery: async (req, res) => {
+        try {
+            const { latitude, longitude, notes } = req.body;
+
+            if (!latitude || !longitude) {
+                return res.status(400).json({ message: 'Latitude and Longitude are required' });
+            }
+
+            const latNum = parseFloat(latitude);
+            const lngNum = parseFloat(longitude);
+
+            if (isNaN(latNum) || isNaN(lngNum)) {
+                return res.status(400).json({ message: 'Invalid coordinate format' });
+            }
+
+            const newLog = await prisma.delivery_logs.create({
+                data: {
+                    lat: latNum,
+                    lng: lngNum,
+                    notes: notes || "",
+                    items: [], 
+                    created_at: new Date()
+                }
+            });
+
+            res.status(201).json(newLog);
+        } catch (error) {
+            console.error('Error creating delivery log:', error);
+            res.status(500).json({ message: 'Failed to create delivery log', error: error.message });
+        }
+    },
+
+    //Add getAllDeliveries here later
+};
+
+module.exports = deliveryController;
